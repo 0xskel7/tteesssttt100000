@@ -1,7 +1,3 @@
-/**
- * CWE-79: neutralize untrusted flight strings before display/labels.
- * React text nodes already escape HTML — this strips control/markup leftovers.
- */
 export function safeDisplayText(
   input: string | null | undefined,
   maxLen = 80,

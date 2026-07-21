@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Error Boundary for the main map route only.
- * Failure here must not affect /track/[flightId] or auth routes.
- */
 export default function MapError({
   error,
   reset,

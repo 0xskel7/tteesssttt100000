@@ -3,10 +3,6 @@ import { Logger } from "@nestjs/common";
 const DANGEROUS = /[<>"'`\\]/g;
 const CONTROL = /[\u0000-\u001F\u007F]/g;
 
-/**
- * CWE-79 defense: neutralize untrusted strings (OpenSky callsigns, user display names)
- * before storage/API output. React already escapes HTML; this hardens JSON consumers.
- */
 export function sanitizeUntrustedText(
   input: string | null | undefined,
   maxLen = 80,
@@ -27,7 +23,7 @@ export function assertSafeProductionSecrets(env: NodeJS.ProcessEnv): void {
 
   if (nodeEnv === "production" && weak) {
     throw new Error(
-      "Refusing to start: JWT_SECRET must be a strong unique secret in production (≥32 chars)",
+      "Refusing to start: JWT_SECRET must be a strong unique secret in production (>=32 chars)",
     );
   }
   if (weak) {
@@ -35,14 +31,13 @@ export function assertSafeProductionSecrets(env: NodeJS.ProcessEnv): void {
   }
 }
 
-/** Parse CORS_ORIGINS allowlist; fail closed in production if empty. */
 export function resolveCorsOrigins(env: NodeJS.ProcessEnv): string[] | false {
   const raw = (env.CORS_ORIGINS ?? "http://localhost:3000").trim();
   if (raw === "*") {
     if (env.NODE_ENV === "production") {
       throw new Error("CORS_ORIGINS=* is forbidden in production with credentials");
     }
-    return false; // reflect disabled — use empty deny
+    return false;
   }
   const list = raw
     .split(",")

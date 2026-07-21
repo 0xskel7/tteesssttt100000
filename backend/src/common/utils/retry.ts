@@ -1,7 +1,3 @@
-/**
- * Retry with exponential backoff + jitter.
- * Failures stay local to the caller — never crash the Nest process.
- */
 export interface RetryOptions {
   maxRetries: number;
   baseMs: number;

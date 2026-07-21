@@ -9,25 +9,19 @@ export type ConnectionStatus =
   | "error";
 
 export interface FlightSocketClientOptions {
-  /** e.g. http://localhost:4100 */
+
   url: string;
-  /** Socket.io path — must match engine (`/ws`) */
+
   path?: string;
-  /** Backend JWT access token required by realtime-engine handshake */
+
   accessToken?: string;
-  /** Called on every live or snapshot position */
+
   onPosition?: (update: FlightPositionUpdate) => void;
   onSnapshot?: (updates: FlightPositionUpdate[]) => void;
   onStatus?: (status: ConnectionStatus) => void;
   onError?: (message: string) => void;
 }
 
-/**
- * Socket.io client with:
- * - automatic reconnection + exponential backoff
- * - re-subscribe to the same flight set after reconnect
- * - does NOT touch map camera (see map-view-persistence.ts)
- */
 export class FlightSocketClient {
   private socket: Socket | null = null;
   private watchedFlightIds = new Set<string>();
@@ -54,7 +48,7 @@ export class FlightSocketClient {
       auth: this.opts.accessToken
         ? { token: this.opts.accessToken }
         : undefined,
-      // Built-in reconnection — keeps trying without wiping app state
+
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 500,
@@ -66,7 +60,7 @@ export class FlightSocketClient {
 
     this.socket.on("connect", () => {
       this.setStatus("connected");
-      // Re-subscribe so the user keeps live updates after a drop
+
       this.resubscribeAll();
     });
 
@@ -102,10 +96,6 @@ export class FlightSocketClient {
     });
   }
 
-  /**
-   * Replace the watched flight set (e.g. map viewport changed).
-   * Diffs locally to avoid unnecessary unsubscribe storms.
-   */
   syncSubscriptions(flightIds: string[]): void {
     const next = new Set(flightIds);
     const toAdd: string[] = [];

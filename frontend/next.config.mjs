@@ -2,21 +2,31 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoName = "tteesssttt100000";
+const isGhPages = process.env.GITHUB_PAGES === "1";
+const basePath = isGhPages ? `/${repoName}` : "";
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "export",
+  trailingSlash: true,
+  basePath,
+  assetPrefix: basePath ? `${basePath}/` : undefined,
+  images: { unoptimized: true },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   reactStrictMode: true,
   transpilePackages: ["cesium"],
   async headers() {
-    // CWE-79 / Misconfiguration: CSP + baseline hardening headers
+
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:", // Cesium workers need blob/eval in many setups
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
       "worker-src 'self' blob:",
-      "connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 http://localhost:4100 http://127.0.0.1:4100 ws://localhost:4100 ws://127.0.0.1:4100",
+      "connect-src 'self' https: http: ws: wss:",
       "object-src 'none'",
       "base-uri 'self'",
       "frame-ancestors 'none'",
@@ -31,10 +41,6 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
         ],
       },
     ];
@@ -48,7 +54,7 @@ const nextConfig = {
     if (!isServer) {
       config.plugins.push(
         new webpack.DefinePlugin({
-          CESIUM_BASE_URL: JSON.stringify("/cesium"),
+          CESIUM_BASE_URL: JSON.stringify(`${basePath}/cesium`),
         }),
       );
     }

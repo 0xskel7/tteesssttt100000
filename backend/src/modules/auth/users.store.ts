@@ -7,12 +7,11 @@ export interface UserRecord {
   displayName: string;
   role: AppRole;
   isActive: boolean;
-  /** Bumped on logout / password change to invalidate access JWTs */
+
   tokenVersion: number;
   createdAt: string;
 }
 
-/** In-memory user store (swap for Postgres repository later). */
 export class UsersStore {
   private readonly byEmail = new Map<string, UserRecord>();
   private readonly byId = new Map<string, UserRecord>();

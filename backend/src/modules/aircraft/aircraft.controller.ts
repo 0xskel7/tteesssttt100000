@@ -22,7 +22,6 @@ export class AircraftController {
     return this.aircraft.getById(id);
   }
 
-  /** Broken Access Control: only admins may mutate the registry. */
   @Roles("admin")
   @UseGuards(RolesGuard)
   @Throttle({ default: { limit: 30, ttl: 60_000 } })

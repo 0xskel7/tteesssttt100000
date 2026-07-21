@@ -12,7 +12,7 @@ export interface FlightPositionDto {
 
 export interface LatestPositionsResult {
   positions: FlightPositionDto[];
-  /** true when served from DB/cache because realtime path failed */
+
   degraded: boolean;
   source: "realtime-engine" | "database-fallback";
 }

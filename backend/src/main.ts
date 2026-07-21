@@ -13,7 +13,6 @@ async function bootstrap() {
     logger: ["error", "warn", "log"],
   });
 
-  // Rate-limit accuracy behind reverse proxies (CWE-400 / shared IP keying)
   const expressApp = app.getHttpAdapter().getInstance() as {
     set: (k: string, v: unknown) => void;
   };
@@ -21,7 +20,6 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api");
 
-  // Security Misconfiguration: explicit CORS allowlist (never origin:true)
   const origins = resolveCorsOrigins(process.env);
   app.enableCors({
     origin: origins,
@@ -30,8 +28,6 @@ async function bootstrap() {
     allowedHeaders: ["Authorization", "Content-Type", "X-Internal-Token"],
   });
 
-  // CSRF: auth is Bearer-only (not cookies) — browsers do not auto-attach JWTs.
-  // If cookie sessions are ever added, require SameSite=Strict + CSRF tokens.
   Logger.log(
     "Auth transport: Authorization Bearer (CSRF not applicable to cookie-less JWT)",
     "Security",

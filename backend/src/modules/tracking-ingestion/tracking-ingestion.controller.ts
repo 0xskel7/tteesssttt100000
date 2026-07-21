@@ -8,11 +8,6 @@ import { TrackingIngestionService } from "./tracking-ingestion.service";
 export class TrackingIngestionController {
   constructor(private readonly ingestion: TrackingIngestionService) {}
 
-  /**
-   * Ops-only manual trigger.
-   * Auth: x-internal-token (not end-user JWT) — prevents Broken Access Control.
-   * Still @Public() for JwtAuthGuard skip; InternalTokenGuard enforces access.
-   */
   @Public()
   @UseGuards(InternalTokenGuard)
   @Throttle({ default: { limit: 2, ttl: 60_000 } })

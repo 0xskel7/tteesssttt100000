@@ -7,11 +7,6 @@ export interface CircuitBreakerOptions {
   name?: string;
 }
 
-/**
- * Simple in-process Circuit Breaker.
- * Used by backend (and optionally engine consumers) so realtime failures
- * degrade to snapshot fallback instead of cascading outages.
- */
 export class CircuitBreaker {
   private state: CircuitState = "closed";
   private failures = 0;

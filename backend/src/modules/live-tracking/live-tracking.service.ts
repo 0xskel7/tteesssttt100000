@@ -82,7 +82,7 @@ export class LiveTrackingService implements OnModuleInit {
   private async fetchFromEngine(
     flightIds: string[],
   ): Promise<FlightPositionDto[]> {
-    // Base host already allowlisted — only append encoded query
+
     const url = new URL("/v1/positions/latest", this.engineBaseUrl);
     url.searchParams.set("flightIds", flightIds.join(","));
 

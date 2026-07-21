@@ -18,16 +18,13 @@ function clientIp(socket: Socket, trustProxy: boolean): string {
   if (trustProxy) {
     const forwarded = socket.handshake.headers["x-forwarded-for"];
     if (typeof forwarded === "string" && forwarded.length > 0) {
-      // Right-most trusted hop pattern: take first client IP only when proxy sets it
+
       return forwarded.split(",")[0]?.trim() || "unknown";
     }
   }
   return socket.handshake.address || "unknown";
 }
 
-/**
- * Socket.io gateway: JWT auth + subscribe-only rooms + rate limits + room caps.
- */
 export function registerSocketGateway(
   io: Server,
   rateLimiter: WsRateLimiter,
@@ -98,7 +95,7 @@ export function registerSocketGateway(
       }
 
       const subscribed = socket.data.subscribed as Set<string>;
-      // CWE-400: hard cap rooms per socket
+
       if (
         subscribed.size + parsed.data.flightIds.length >
         config.WS_MAX_ROOMS_PER_SOCKET

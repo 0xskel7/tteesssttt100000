@@ -27,13 +27,12 @@ async function bootstrap() {
       methods: ["GET", "POST"],
       credentials: true,
     },
-    // Tuned for many idle map watchers
+
     pingInterval: 25_000,
     pingTimeout: 20_000,
     maxHttpBufferSize: 1e5,
   });
 
-  // Multi-instance fan-out: any engine node can emit to rooms on others
   io.adapter(createAdapter(redis.publisher.duplicate(), redis.subscriber.duplicate()));
 
   const pubsub = new PositionPubSub(
@@ -47,7 +46,6 @@ async function bootstrap() {
 
   registerSocketGateway(io, rateLimiter, snapshots, config);
 
-  // Expose publisher for ingest simulator / future provider adapters
   (global as unknown as { __flightPubSub?: PositionPubSub }).__flightPubSub = pubsub;
 
   server.listen(config.PORT, config.HOST, () => {

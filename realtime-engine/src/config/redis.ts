@@ -2,8 +2,7 @@ import Redis from "ioredis";
 import type { AppConfig } from "../config/env";
 
 export function createRedisClients(config: AppConfig) {
-  // Separate connections: pub, sub, and commands must not share one Redis link
-  // when using subscribe mode.
+
   const common = {
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,

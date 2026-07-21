@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Independent Error Boundary for /track/[flightId].
- * A crash while loading one flight must not take down the main map route.
- */
 export default function TrackFlightError({
   error,
   reset,

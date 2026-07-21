@@ -8,10 +8,6 @@ import {
 } from "@nestjs/common";
 import type { Response } from "express";
 
-/**
- * Global error envelope — never leak stacks to clients.
- * Partial domain failures should use Result DTOs instead of throwing when possible.
- */
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);

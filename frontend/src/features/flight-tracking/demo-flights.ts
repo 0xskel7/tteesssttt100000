@@ -1,6 +1,5 @@
 import type { LiveFlight } from "./types";
 
-/** Demo fleet for the globe until realtime ingest is wired end-to-end. */
 export const DEMO_FLIGHTS: LiveFlight[] = [
   {
     id: "11111111-1111-1111-1111-111111111111",

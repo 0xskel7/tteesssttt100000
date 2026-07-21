@@ -13,9 +13,6 @@ export interface FlightAircraftInfo {
   airlineName: string;
 }
 
-/**
- * SIMULATED passenger estimate — not real PII / manifests.
- */
 export interface SimulatedPassengerEstimate {
   estimatedPassengers: number;
   maxCapacity: number;
@@ -40,7 +37,7 @@ export interface LiveFlight {
   etaIso: string;
   aircraft: FlightAircraftInfo;
   passengerEstimate: SimulatedPassengerEstimate;
-  /** Path samples from departure toward current position */
+
   path: Array<{ lat: number; lon: number; altFt: number }>;
 }
 

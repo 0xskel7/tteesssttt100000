@@ -22,10 +22,6 @@ export class FlightsService {
 
   constructor(private readonly store: FlightsStore) {}
 
-  /**
-   * Map payload: return all flights that serialize cleanly.
-   * One corrupt record must NOT blank the whole map.
-   */
   listForMap(status?: string) {
     const rows = this.store.list().filter((f) =>
       status ? f.status === status : true,
@@ -64,9 +60,6 @@ export class FlightsService {
     }
   }
 
-  /**
-   * Per-state upsert from ingestion — isolated try/catch at caller.
-   */
   upsertFromLive(input: UpsertLiveFlightInput): FlightRecord {
     const existing = this.store.findByIcao24(input.icao24);
     const now = new Date().toISOString();

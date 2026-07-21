@@ -7,9 +7,6 @@ import {
 import { Observable, map } from "rxjs";
 import { sanitizeUntrustedText } from "../security/hardening";
 
-/**
- * Sanitized Output: drop secrets + neutralize string leaves (CWE-79 defense-in-depth).
- */
 @Injectable()
 export class SanitizeResponseInterceptor implements NestInterceptor {
   intercept(_context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -32,7 +29,7 @@ function sanitize(value: unknown, depth: number): unknown {
   if (Array.isArray(value)) return value.map((v) => sanitize(v, depth + 1));
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "string") {
-    // Do not mangle JWTs / emails / ISO dates — only strip HTML/control if present
+
     if (/[<>"'`]/.test(value) || /[\u0000-\u001F]/.test(value)) {
       return sanitizeUntrustedText(value, 500) ?? "";
     }

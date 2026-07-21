@@ -16,8 +16,6 @@ export class TrackingIngestionScheduler {
     this.logger.log(`OpenSky poll interval: ${this.intervalMs}ms`);
   }
 
-  // Nest Schedule Interval decorator needs a static-ish value;
-  // we gate inside using configured interval via last-run check.
   private lastStartedAt = 0;
 
   @Interval(5_000)
@@ -28,7 +26,7 @@ export class TrackingIngestionScheduler {
     try {
       await this.ingestion.runCycle();
     } catch (err) {
-      // Belt-and-suspenders: never let scheduler exceptions escape
+
       this.logger.error(
         `Unhandled ingestion error (suppressed): ${
           err instanceof Error ? err.message : String(err)

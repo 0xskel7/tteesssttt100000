@@ -25,7 +25,6 @@ export interface NormalizedPositionEvent {
   source: "opensky";
 }
 
-/** OpenSky `states` row indices — https://openskynetwork.github.io/opensky-api/rest.html */
 export function parseOpenSkyState(row: unknown[]): OpenSkyStateVector | null {
   if (!Array.isArray(row) || row.length < 12) return null;
   const icao24 = String(row[0] ?? "").trim().toLowerCase();

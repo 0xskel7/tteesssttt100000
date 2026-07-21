@@ -5,7 +5,7 @@ import { colors, radii, space, typography } from "@/shared/design-tokens";
 
 interface Props {
   children: ReactNode;
-  /** Shown in the fallback UI */
+
   title?: string;
   fallback?: ReactNode;
   onError?: (error: Error, info: ErrorInfo) => void;
@@ -15,10 +15,6 @@ interface State {
   error: Error | null;
 }
 
-/**
- * Feature/page-level Error Boundary.
- * Isolate failures so a broken flight detail panel cannot take down the globe.
- */
 export class FeatureErrorBoundary extends Component<Props, State> {
   override state: State = { error: null };
 

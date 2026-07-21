@@ -54,7 +54,6 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException("Invalid token type");
       }
 
-      // Broken Access Control: reject deleted/disabled users immediately
       const user = this.users.findById(payload.sub);
       if (!user || !user.isActive) {
         throw new UnauthorizedException("User session revoked");

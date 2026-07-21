@@ -11,10 +11,6 @@ interface JwtPayload {
   aud?: string | string[];
 }
 
-/**
- * Minimal HS256 JWT verify (no external dep) for Socket.io handshake.
- * Must match backend issuer/audience/algorithm.
- */
 export function verifyAccessToken(
   token: string,
   config: AppConfig,

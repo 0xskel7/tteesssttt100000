@@ -1,7 +1,3 @@
-/**
- * Dev simulator: publishes fake positions to Redis so Socket.io clients receive updates.
- * Usage: npm run simulate:ingest
- */
 import { loadConfig } from "../config/env";
 import { createRedisClients } from "../config/redis";
 import { PositionSnapshotStore } from "../state/snapshot-store";

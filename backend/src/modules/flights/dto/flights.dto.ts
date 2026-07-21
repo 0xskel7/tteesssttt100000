@@ -26,7 +26,6 @@ export class ListFlightsQueryDto {
   status?: FlightStatus;
 }
 
-/** Injection-safe: only UUID-shaped ids, capped length. */
 export class LatestFlightIdsQueryDto {
   @IsOptional()
   @IsString()

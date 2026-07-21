@@ -4,7 +4,7 @@ import { Public } from "../../common/decorators/public.decorator";
 import { LiveTrackingService } from "./live-tracking.service";
 
 class LatestQueryDto {
-  /** Comma-separated UUIDs only — Injection + SSRF query hardening */
+
   @IsOptional()
   @IsString()
   @MaxLength(3700)

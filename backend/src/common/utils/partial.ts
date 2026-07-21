@@ -1,6 +1,3 @@
-/**
- * Partial success helper: one bad item must not drop the whole collection.
- */
 export interface PartialCollection<T> {
   items: T[];
   errors: Array<{ id?: string; message: string }>;

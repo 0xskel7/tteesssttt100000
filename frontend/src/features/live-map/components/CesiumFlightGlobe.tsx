@@ -10,10 +10,6 @@ interface Props {
   onSelectFlight: (flightId: string | null) => void;
 }
 
-/**
- * Cesium 3D globe — loaded client-only.
- * Aircraft: try glTF model oriented by heading; on failure → 2D billboard (graceful).
- */
 export function CesiumFlightGlobe({
   flights,
   selectedFlightId,
@@ -23,7 +19,6 @@ export function CesiumFlightGlobe({
   const [bootError, setBootError] = useState<string | null>(null);
   const [modelMode, setModelMode] = useState<"3d" | "2d-fallback">("3d");
 
-  // Keep mutable refs for Cesium callbacks without re-init
   const flightsRef = useRef(flights);
   const selectedRef = useRef(selectedFlightId);
   const onSelectRef = useRef(onSelectFlight);
@@ -40,17 +35,16 @@ export function CesiumFlightGlobe({
       if (!containerRef.current) return;
 
       try {
-        // Prefer copied local assets; fall back to CDN base if missing in dev
+
         (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL =
-          "/cesium/";
+          `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/cesium/`;
 
         const Cesium = await import("cesium");
-        // CSS side-effect — typed via ambient module
+
         await import("cesium/Build/Cesium/Widgets/widgets.css");
 
         if (cancelled || !containerRef.current) return;
 
-        // Ion token optional — globe works with OSM/Ellipsoid without photogrammetry
         if (process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN) {
           Cesium.Ion.defaultAccessToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN;
         }
@@ -81,7 +75,6 @@ export function CesiumFlightGlobe({
           viewer.scene.skyAtmosphere.saturationShift = -0.1;
         }
 
-        // Darker basemap feel without requiring Ion imagery
         try {
           viewer.imageryLayers.removeAll();
           viewer.imageryLayers.addImageryProvider(
@@ -92,7 +85,7 @@ export function CesiumFlightGlobe({
             }),
           );
         } catch {
-          /* keep default imagery */
+
         }
 
         viewer.camera.setView({
@@ -187,7 +180,6 @@ export function CesiumFlightGlobe({
               },
             });
 
-            // Graceful fallback if a specific model fails mid-flight
             if (modelOk && entity.model) {
               const err = (
                 entity.model as unknown as {
@@ -210,7 +202,6 @@ export function CesiumFlightGlobe({
             updatePath(Cesium, viewer, flight, selected);
           }
 
-          // Remove stale
           for (const [flightId, entId] of entityIds) {
             if (seen.has(flightId)) continue;
             viewer.entities.removeById(entId);
@@ -221,7 +212,6 @@ export function CesiumFlightGlobe({
 
         syncEntities();
 
-        // Click → select + camera fly-to
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         handler.setInputAction(
           (movement: { position: import("cesium").Cartesian2 }) => {
@@ -241,10 +231,8 @@ export function CesiumFlightGlobe({
           Cesium.ScreenSpaceEventType.LEFT_CLICK,
         );
 
-        // Re-sync when React updates flights/selection via interval + external trigger
         const interval = window.setInterval(syncEntities, 1500);
 
-        // Expose fly-to when selection changes from panel/list
         const onExternalSelect = () => {
           const id = selectedRef.current;
           if (!id || !viewer) return;
@@ -253,7 +241,6 @@ export function CesiumFlightGlobe({
         };
         window.addEventListener("horizon:flyto", onExternalSelect);
 
-        // Store cleanup bits on viewer
         (viewer as unknown as { __horizonCleanup?: () => void }).__horizonCleanup =
           () => {
             window.clearInterval(interval);
@@ -279,7 +266,6 @@ export function CesiumFlightGlobe({
     };
   }, []);
 
-  // When selection changes from React, request fly-to
   useEffect(() => {
     if (selectedFlightId) {
       window.dispatchEvent(new Event("horizon:flyto"));
@@ -366,7 +352,6 @@ function updatePath(
     feetToMeters(p.altFt),
   ]);
 
-  // Animated dash via time-based material
   const material = new Cesium.PolylineGlowMaterialProperty({
     glowPower: 0.2,
     color: Cesium.Color.fromCssColorString(
@@ -402,7 +387,7 @@ async function probeModel(url: string): Promise<boolean> {
   try {
     const res = await fetch(url, { method: "HEAD" });
     if (res.ok) return true;
-    // Some static hosts reject HEAD — try GET range
+
     const get = await fetch(url, { method: "GET", headers: { Range: "bytes=0-0" } });
     return get.ok || get.status === 206;
   } catch {
@@ -410,7 +395,6 @@ async function probeModel(url: string): Promise<boolean> {
   }
 }
 
-/** Canvas 2D aircraft silhouette; drawn already rotated by bearing. */
 function createAircraftCanvas(headingDeg: number, selected: boolean): string {
   const size = 64;
   const canvas = document.createElement("canvas");
@@ -425,7 +409,6 @@ function createAircraftCanvas(headingDeg: number, selected: boolean): string {
   ctx.strokeStyle = "#041018";
   ctx.lineWidth = 2;
 
-  // Simple top-down jet silhouette
   ctx.beginPath();
   ctx.moveTo(0, -18);
   ctx.lineTo(5, 4);

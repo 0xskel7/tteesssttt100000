@@ -1,7 +1,3 @@
-/**
- * Atomic Redis-backed WebSocket rate limits (multi-instance safe).
- * Addresses CWE-400: connection storms, subscribe floods, event floods.
- */
 import type { Redis } from "ioredis";
 import type { AppConfig } from "../config/env";
 

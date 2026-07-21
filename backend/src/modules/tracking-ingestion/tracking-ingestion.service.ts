@@ -38,10 +38,6 @@ export class TrackingIngestionService {
     return this.lastCycle;
   }
 
-  /**
-   * One poll cycle. Provider/redis failures stay inside this method —
-   * they never crash HTTP handlers or other modules.
-   */
   async runCycle(): Promise<IngestionCycleResult> {
     if (this.running) {
       return (
@@ -135,14 +131,14 @@ export class TrackingIngestionService {
             const message =
               pubErr instanceof Error ? pubErr.message : "publish_failed";
             errors.push({ icao24: cleaned.icao24, message });
-            // Keep flight in store even if Redis publish fails
+
           }
         } catch (itemErr) {
           const message =
             itemErr instanceof Error ? itemErr.message : "state_failed";
           errors.push({ icao24: state.icao24, message });
           skipped += 1;
-          // Continue — one bad aircraft must not stop the map feed
+
         }
       }
     } finally {

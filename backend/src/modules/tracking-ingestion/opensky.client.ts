@@ -30,10 +30,9 @@ export class OpenSkyClient {
     const maxMs = this.config.get<number>("OPENSKY_BACKOFF_MAX_MS", 8000);
     const bbox = this.config.get<string>("OPENSKY_BBOX", "");
 
-    // SSRF: validate allowlisted HTTPS host before any fetch
     const allowedBase = await assertAllowedOutboundUrl(base.replace(/\/$/, "") + "/");
     const url = new URL("states/all", allowedBase);
-    // Force path — ignore any user/env path tricks beyond host allowlist
+
     url.pathname = "/api/states/all";
 
     if (bbox) {
@@ -91,7 +90,7 @@ export class OpenSkyClient {
       const res = await fetch(url, {
         signal: controller.signal,
         headers: { Accept: "application/json" },
-        redirect: "error", // SSRF: never follow redirects off-allowlist
+        redirect: "error",
       });
       if (!res.ok) {
         throw new Error(`OpenSky HTTP ${res.status}`);

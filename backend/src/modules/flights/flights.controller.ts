@@ -7,7 +7,6 @@ import { FlightsService } from "./flights.service";
 export class FlightsController {
   constructor(private readonly flights: FlightsService) {}
 
-  /** Public map feed — auth optional later for personalization. */
   @Public()
   @Get()
   list(@Query() query: ListFlightsQueryDto) {

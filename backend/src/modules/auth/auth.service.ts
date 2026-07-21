@@ -19,7 +19,7 @@ interface RefreshRecord {
 
 @Injectable()
 export class AuthService {
-  /** Opaque refresh tokens stored hashed — never persist raw tokens. */
+
   private readonly refreshTokens = new Map<string, RefreshRecord>();
 
   constructor(
@@ -52,7 +52,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = this.users.findByEmail(dto.email);
-    // Constant-ish failure message (no user enumeration detail)
+
     if (!user || !user.isActive) {
       throw new UnauthorizedException("Invalid credentials");
     }
@@ -69,7 +69,6 @@ export class AuthService {
       throw new UnauthorizedException("Invalid refresh token");
     }
 
-    // Rotate: invalidate old refresh immediately (reuse detection = force re-login)
     this.refreshTokens.delete(hash);
 
     const user = this.users.findById(row.userId);
@@ -80,12 +79,11 @@ export class AuthService {
     return this.issueSession(user.id, user.email, user.displayName, user.tokenVersion);
   }
 
-  /** Logout: revoke refresh + bump tokenVersion so access JWTs die. */
   logout(userId: string, refreshToken?: string) {
     if (refreshToken) {
       this.refreshTokens.delete(hashToken(refreshToken));
     }
-    // Revoke all refresh tokens for user
+
     for (const [key, row] of this.refreshTokens) {
       if (row.userId === userId) this.refreshTokens.delete(key);
     }

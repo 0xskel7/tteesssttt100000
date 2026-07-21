@@ -10,7 +10,7 @@ export class NotificationsController {
 
   @Get("subscriptions")
   list(@CurrentUser() user: AuthUser) {
-    // Broken Access Control: scoped to JWT userId only
+
     return this.notifications.listForUser(user.userId);
   }
 
@@ -25,7 +25,7 @@ export class NotificationsController {
     @CurrentUser() user: AuthUser,
     @Param("id", ParseUUIDPipe) id: string,
   ) {
-    // Ownership enforced inside service (userId match)
+
     return this.notifications.unsubscribe(user.userId, id);
   }
 }

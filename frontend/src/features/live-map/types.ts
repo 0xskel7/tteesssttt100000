@@ -22,7 +22,6 @@ export const SOCKET_EVENTS = {
   SNAPSHOT: "flight:snapshot",
 } as const;
 
-/** Persisted so a WS drop does not reset the user's map camera. */
 export interface MapViewState {
   center: { lat: number; lng: number };
   zoom: number;

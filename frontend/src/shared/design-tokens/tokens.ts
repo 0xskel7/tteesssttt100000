@@ -1,8 +1,3 @@
-/**
- * Horizon Design Tokens — single source of truth for color, type, space, motion.
- * Import TS tokens in components; CSS variables power global styles.
- */
-
 export const colors = {
   brand: {
     primary: "#3EE0C5",

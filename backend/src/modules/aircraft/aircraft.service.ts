@@ -52,7 +52,6 @@ export class AircraftService {
     return toPublic(created);
   }
 
-  /** Used by ingestion — never throws for a single bad aircraft. */
   ensureFromIcao24(icao24: string): AircraftRecord {
     const existing = this.store.findByIcao24(icao24);
     if (existing) return existing;

@@ -1,7 +1,3 @@
-/**
- * Circuit Breaker — copied/shared pattern with realtime-engine.
- * Backend keeps its own copy so the API process does not import the engine package.
- */
 export type CircuitState = "closed" | "open" | "half_open";
 
 export interface CircuitBreakerOptions {

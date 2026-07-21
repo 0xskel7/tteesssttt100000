@@ -2,10 +2,6 @@ import type Redis from "ioredis";
 import type { AppConfig } from "../config/env";
 import type { FlightPositionUpdate } from "../types/position";
 
-/**
- * Last-known position store in Redis.
- * Used as Fallback when ingest/providers degrade or Circuit Breaker opens.
- */
 export class PositionSnapshotStore {
   constructor(
     private readonly redis: Redis,
@@ -45,7 +41,7 @@ export class PositionSnapshotStore {
       try {
         out.push(JSON.parse(raw) as FlightPositionUpdate);
       } catch {
-        /* skip corrupt */
+
       }
     }
     return out;

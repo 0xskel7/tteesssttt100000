@@ -4,7 +4,6 @@ import * as bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { UsersStore } from "./users.store";
 
-/** Optional bootstrap admin from env (local/ops only). */
 @Injectable()
 export class AuthBootstrap implements OnModuleInit {
   constructor(

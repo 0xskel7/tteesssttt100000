@@ -3,10 +3,6 @@ import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 import type { NormalizedPositionEvent } from "./opensky.types";
 
-/**
- * Publishes cleaned positions to Redis Pub/Sub for realtime-engine consumers.
- * Also writes last-known snapshot keys (same contract as realtime-engine).
- */
 @Injectable()
 export class PositionsPublisher implements OnModuleDestroy {
   private readonly logger = new Logger(PositionsPublisher.name);
@@ -80,7 +76,7 @@ export class PositionsPublisher implements OnModuleDestroy {
     try {
       this.redis.disconnect();
     } catch {
-      /* ignore */
+
     }
   }
 }

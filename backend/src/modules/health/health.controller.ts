@@ -20,7 +20,6 @@ export class HealthController {
     private readonly liveTracking: LiveTrackingService,
   ) {}
 
-  /** Aggregate readiness — Prometheus can scrape `/health` later via exporter. */
   @Public()
   @Get()
   @HealthCheck()

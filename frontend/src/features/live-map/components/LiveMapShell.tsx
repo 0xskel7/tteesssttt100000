@@ -35,7 +35,7 @@ const CesiumFlightGlobe = dynamic(
 
 interface Props {
   initialFlights?: LiveFlight[];
-  /** Optional deep-link selection from /track/[flightId] */
+
   initialSelectedId?: string | null;
 }
 
@@ -53,7 +53,7 @@ export function LiveMapShell({
 
   const onSelectFlight = useCallback((id: string | null) => {
     setSelectedId(id);
-    // Preserve last camera intent for reconnect flows
+
     const previous = loadMapView();
     if (previous) saveMapView(previous);
   }, []);
