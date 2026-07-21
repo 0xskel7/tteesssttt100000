@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { FlightDetailPanel } from "@/features/flight-tracking/components/FlightDetailPanel";
 import { DEMO_FLIGHTS } from "@/features/flight-tracking/demo-flights";
@@ -9,6 +9,7 @@ import { FeatureErrorBoundary } from "@/shared/ui-error-boundary";
 import { colors, typography } from "@/shared/design-tokens";
 import { loadMapView, saveMapView } from "../map-view-persistence";
 import { CesiumFlightGlobe } from "./CesiumFlightGlobe";
+import { advanceFlights } from "../simulate-flights";
 
 interface Props {
   initialFlights?: LiveFlight[];
@@ -20,7 +21,12 @@ export function LiveMapShell({
   initialFlights = DEMO_FLIGHTS,
   initialSelectedId = null,
 }: Props) {
-  const [flights] = useState(initialFlights);
+  const [flights, setFlights] = useState(() =>
+    initialFlights.map((flight) => ({
+      ...flight,
+      path: flight.path.map((point) => ({ ...point })),
+    })),
+  );
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
   const [query, setQuery] = useState("");
 
@@ -47,6 +53,13 @@ export function LiveMapShell({
 
     const previous = loadMapView();
     if (previous) saveMapView(previous);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setFlights((current) => advanceFlights(current));
+    }, 1_200);
+    return () => window.clearInterval(timer);
   }, []);
 
   return (
@@ -77,6 +90,30 @@ export function LiveMapShell({
           </motion.button>
         ))}
       </nav>
+
+      <div className="map-controls" aria-label="Map controls">
+        <button
+          type="button"
+          aria-label="Zoom in"
+          onClick={() => window.dispatchEvent(new Event("horizon:zoom-in"))}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          aria-label="Zoom out"
+          onClick={() => window.dispatchEvent(new Event("horizon:zoom-out"))}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          aria-label="Reset map"
+          onClick={() => window.dispatchEvent(new Event("horizon:home"))}
+        >
+          ◉
+        </button>
+      </div>
 
       <FeatureErrorBoundary title="Flight panel failed">
         <FlightDetailPanel flight={selected} onClose={() => onSelectFlight(null)} />

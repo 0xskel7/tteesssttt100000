@@ -91,9 +91,7 @@ button {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(4, 11, 18, 0.4) 0, transparent 25%),
-    radial-gradient(circle at 50% 50%, transparent 55%, rgba(4, 11, 18, 0.2) 100%);
+  background: linear-gradient(180deg, rgba(4, 11, 18, 0.2) 0, transparent 18%);
 }
 
 .globe-stage {
@@ -265,6 +263,43 @@ button {
   box-shadow: 0 0 9px #3ee0c5;
 }
 
+.map-controls {
+  position: absolute;
+  right: 20px;
+  bottom: 22px;
+  z-index: 15;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(23, 53, 71, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+
+.map-controls button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #dbe4e9;
+  background: transparent;
+  color: #244354;
+  font: 600 1.25rem var(--hz-font-body);
+  cursor: pointer;
+}
+
+.map-controls button:last-child {
+  border-bottom: 0;
+  color: #0d9c8d;
+  font-size: 1rem;
+}
+
+.map-controls button:hover {
+  background: #f0f6f8;
+}
+
 @media (max-width: 960px) {
   .map-header {
     width: calc(100vw - 40px);
@@ -272,6 +307,10 @@ button {
 
   .flight-chips {
     max-width: calc(100vw - 40px);
+  }
+
+  .map-controls {
+    right: 18px;
   }
 }
 
@@ -352,6 +391,16 @@ button {
     left: 10px;
     bottom: max(10px, env(safe-area-inset-bottom));
     padding: 6px 9px;
+  }
+
+  .map-controls {
+    right: 10px;
+    bottom: 60px;
+  }
+
+  .map-controls button {
+    width: 38px;
+    height: 36px;
   }
 
   .cesium-viewer-bottom {

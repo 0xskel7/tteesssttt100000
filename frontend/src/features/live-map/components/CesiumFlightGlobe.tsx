@@ -48,6 +48,8 @@ export function CesiumFlightGlobe({
         }
 
         viewer = new Cesium.Viewer(containerRef.current, {
+          sceneMode: Cesium.SceneMode.SCENE2D,
+          mapProjection: new Cesium.WebMercatorProjection(),
           animation: false,
           timeline: false,
           geocoder: false,
@@ -62,12 +64,12 @@ export function CesiumFlightGlobe({
           terrain: undefined,
         });
 
-        viewer.scene.globe.enableLighting = true;
+        viewer.scene.globe.enableLighting = false;
         viewer.scene.globe.atmosphereLightIntensity = 5.0;
         viewer.scene.backgroundColor = Cesium.Color.fromCssColorString(
           colors.map.atmosphere,
         );
-        viewer.scene.fog.enabled = true;
+        viewer.scene.fog.enabled = false;
         if (viewer.scene.skyAtmosphere) {
           viewer.scene.skyAtmosphere.hueShift = -0.05;
           viewer.scene.skyAtmosphere.saturationShift = -0.1;
@@ -87,7 +89,7 @@ export function CesiumFlightGlobe({
         }
 
         viewer.camera.setView({
-          destination: Cesium.Cartesian3.fromDegrees(45, 25, 12_000_000),
+          destination: Cesium.Rectangle.fromDegrees(19, 10, 61, 43),
         });
 
         const requestedModelUrl =
@@ -97,6 +99,8 @@ export function CesiumFlightGlobe({
         const modelOk = Boolean(modelObjectUrl);
         const modelUrl = modelObjectUrl ?? requestedModelUrl;
         if (!modelOk) setModelMode("2d-fallback");
+
+        addCityMarkers(Cesium, viewer, flightsRef.current);
 
         const syncEntities = () => {
           if (!viewer) return;
@@ -127,6 +131,19 @@ export function CesiumFlightGlobe({
               if (entity) {
                 entity.position = new Cesium.ConstantPositionProperty(position);
                 entity.orientation = new Cesium.ConstantProperty(orientation);
+                if (entity.label) {
+                  entity.label.show = new Cesium.ConstantProperty(selected);
+                }
+                if (entity.model) {
+                  entity.model.color = new Cesium.ConstantProperty(
+                    selected
+                      ? Cesium.Color.fromCssColorString(colors.flight.selected)
+                      : Cesium.Color.WHITE,
+                  );
+                  entity.model.colorBlendAmount = new Cesium.ConstantProperty(
+                    selected ? 0.45 : 0.15,
+                  );
+                }
                 updatePath(Cesium, viewer, flight, selected);
                 continue;
               }
@@ -236,12 +253,33 @@ export function CesiumFlightGlobe({
           const flight = flightsRef.current.find((f) => f.id === id);
           if (flight) flyToFlight(Cesium, viewer, flight);
         };
+        const onZoomIn = () => {
+          if (!viewer) return;
+          viewer.camera.zoomIn(viewer.camera.positionCartographic.height * 0.35);
+        };
+        const onZoomOut = () => {
+          if (!viewer) return;
+          viewer.camera.zoomOut(viewer.camera.positionCartographic.height * 0.5);
+        };
+        const onHome = () => {
+          if (!viewer) return;
+          viewer.camera.flyTo({
+            destination: Cesium.Rectangle.fromDegrees(19, 10, 61, 43),
+            duration: 1.4,
+          });
+        };
         window.addEventListener("horizon:flyto", onExternalSelect);
+        window.addEventListener("horizon:zoom-in", onZoomIn);
+        window.addEventListener("horizon:zoom-out", onZoomOut);
+        window.addEventListener("horizon:home", onHome);
 
         (viewer as unknown as { __horizonCleanup?: () => void }).__horizonCleanup =
           () => {
             window.clearInterval(interval);
             window.removeEventListener("horizon:flyto", onExternalSelect);
+            window.removeEventListener("horizon:zoom-in", onZoomIn);
+            window.removeEventListener("horizon:zoom-out", onZoomOut);
+            window.removeEventListener("horizon:home", onHome);
             handler.destroy();
           };
       } catch (err) {
@@ -294,7 +332,7 @@ export function CesiumFlightGlobe({
       ) : null}
       <div className="render-badge">
         <span />
-        Aircraft render: {modelMode === "3d" ? "3D glTF" : "2D fallback"}
+        Live traffic · {modelMode === "3d" ? "3D aircraft" : "2D aircraft"}
       </div>
     </div>
   );
@@ -309,20 +347,57 @@ function flyToFlight(
   viewer: import("cesium").Viewer,
   flight: LiveFlight,
 ): void {
-  const dest = Cesium.Cartesian3.fromDegrees(
-    flight.longitude,
-    flight.latitude,
-    feetToMeters(flight.altitudeFt) + 80_000,
-  );
   viewer.camera.flyTo({
-    destination: dest,
-    orientation: {
-      heading: Cesium.Math.toRadians(flight.headingDeg),
-      pitch: Cesium.Math.toRadians(-35),
-      roll: 0,
-    },
-    duration: 2.2,
+    destination: Cesium.Rectangle.fromDegrees(
+      flight.longitude - 2.6,
+      flight.latitude - 1.7,
+      flight.longitude + 2.6,
+      flight.latitude + 1.7,
+    ),
+    duration: 1.6,
   });
+}
+
+function addCityMarkers(
+  Cesium: CesiumModule,
+  viewer: import("cesium").Viewer,
+  flights: LiveFlight[],
+): void {
+  const airports = new Map(
+    flights
+      .flatMap((flight) => [flight.origin, flight.destination])
+      .map((airport) => [airport.code, airport]),
+  );
+
+  for (const airport of airports.values()) {
+    viewer.entities.add({
+      id: `city-${airport.code}`,
+      position: Cesium.Cartesian3.fromDegrees(
+        airport.longitude,
+        airport.latitude,
+        0,
+      ),
+      point: {
+        pixelSize: 9,
+        color: Cesium.Color.fromCssColorString("#ffffff"),
+        outlineColor: Cesium.Color.fromCssColorString(colors.brand.primary),
+        outlineWidth: 3,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: `${airport.city}\n${airport.code}`,
+        font: "600 13px IBM Plex Sans Arabic, sans-serif",
+        fillColor: Cesium.Color.fromCssColorString("#183140"),
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 4,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        pixelOffset: new Cesium.Cartesian2(12, 0),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+  }
 }
 
 function updatePath(

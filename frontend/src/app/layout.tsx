@@ -29,7 +29,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Horizon — Live Flight Tracking",
   description:
-    "Professional real-time flight tracking on a true 3D globe. Altitude, bearing, and path.",
+    "Live flight tracking on a detailed city map with moving aircraft and routes.",
   icons: {
     icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/icon.svg`,
   },
