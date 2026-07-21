@@ -1,5 +1,6 @@
 import type { Server, Socket } from "socket.io";
 import { z } from "zod";
+import type { AppConfig } from "../config/env";
 import {
   SOCKET_EVENTS,
   flightRoom,
@@ -7,36 +8,56 @@ import {
 } from "../types/position";
 import type { WsRateLimiter } from "../resilience/ws-rate-limiter";
 import type { PositionSnapshotStore } from "../state/snapshot-store";
+import { verifyAccessToken } from "../security/jwt";
 
 const flightIdsSchema = z.object({
   flightIds: z.array(z.string().uuid()).min(1).max(50),
 });
 
-function clientIp(socket: Socket): string {
-  const forwarded = socket.handshake.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.length > 0) {
-    return forwarded.split(",")[0].trim();
+function clientIp(socket: Socket, trustProxy: boolean): string {
+  if (trustProxy) {
+    const forwarded = socket.handshake.headers["x-forwarded-for"];
+    if (typeof forwarded === "string" && forwarded.length > 0) {
+      // Right-most trusted hop pattern: take first client IP only when proxy sets it
+      return forwarded.split(",")[0]?.trim() || "unknown";
+    }
   }
   return socket.handshake.address || "unknown";
 }
 
 /**
- * Socket.io gateway: subscribe-only rooms + rate limits + snapshot on join.
+ * Socket.io gateway: JWT auth + subscribe-only rooms + rate limits + room caps.
  */
 export function registerSocketGateway(
   io: Server,
   rateLimiter: WsRateLimiter,
   snapshots: PositionSnapshotStore,
+  config: AppConfig,
 ): void {
   io.use(async (socket, next) => {
-    const ip = clientIp(socket);
-    const result = await rateLimiter.tryAcquireConnection(ip, socket.id);
-    if (!result.allowed) {
-      return next(new Error(result.reason));
+    try {
+      const token =
+        (socket.handshake.auth?.token as string | undefined) ||
+        bearerFromHeader(socket.handshake.headers.authorization);
+
+      if (!token) {
+        return next(new Error("Unauthorized: missing access token"));
+      }
+
+      const payload = verifyAccessToken(token, config);
+      socket.data.userId = payload.sub;
+
+      const ip = clientIp(socket, config.TRUST_PROXY);
+      const result = await rateLimiter.tryAcquireConnection(ip, socket.id);
+      if (!result.allowed) {
+        return next(new Error(result.reason));
+      }
+      socket.data.ip = ip;
+      socket.data.subscribed = new Set<string>();
+      next();
+    } catch (err) {
+      next(new Error(err instanceof Error ? err.message : "Unauthorized"));
     }
-    socket.data.ip = ip;
-    socket.data.subscribed = new Set<string>();
-    next();
   });
 
   io.on("connection", (socket) => {
@@ -77,12 +98,23 @@ export function registerSocketGateway(
       }
 
       const subscribed = socket.data.subscribed as Set<string>;
+      // CWE-400: hard cap rooms per socket
+      if (
+        subscribed.size + parsed.data.flightIds.length >
+        config.WS_MAX_ROOMS_PER_SOCKET
+      ) {
+        socket.emit(SOCKET_EVENTS.ERROR, {
+          code: "ROOM_CAP",
+          message: `Max ${config.WS_MAX_ROOMS_PER_SOCKET} flight subscriptions per connection`,
+        });
+        return;
+      }
+
       for (const flightId of parsed.data.flightIds) {
         await socket.join(flightRoom(flightId));
         subscribed.add(flightId);
       }
 
-      // Immediate fallback: last known positions so map is never empty on join/reconnect
       const latest = await snapshots.getMany(parsed.data.flightIds);
       if (latest.length > 0) {
         socket.emit(SOCKET_EVENTS.SNAPSHOT, latest satisfies FlightPositionUpdate[]);
@@ -117,6 +149,12 @@ export function registerSocketGateway(
       await rateLimiter.releaseConnection(ip, socket.id);
     });
   });
+}
+
+function bearerFromHeader(header: unknown): string | undefined {
+  if (typeof header !== "string") return undefined;
+  if (!header.startsWith("Bearer ")) return undefined;
+  return header.slice(7).trim();
 }
 
 async function gate(socket: Socket, rateLimiter: WsRateLimiter): Promise<boolean> {

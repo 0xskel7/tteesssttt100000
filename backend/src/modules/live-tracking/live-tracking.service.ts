@@ -1,18 +1,16 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { CircuitBreaker } from "./circuit-breaker";
+import { CircuitBreaker, CircuitOpenError } from "./circuit-breaker";
 import {
   InMemoryPositionFallback,
   type PositionFallbackRepository,
 } from "./fallback-repository";
 import type { FlightPositionDto, LatestPositionsResult } from "./types";
-import { CircuitOpenError } from "./circuit-breaker";
+import { assertAllowedInternalServiceUrl } from "../../common/security/ssrf";
 
-/**
- * Nest-wrapped live-tracking client (Circuit Breaker → realtime-engine).
- */
 @Injectable()
 export class LiveTrackingService implements OnModuleInit {
+  private readonly logger = new Logger(LiveTrackingService.name);
   private breaker!: CircuitBreaker;
   private fallback!: PositionFallbackRepository;
   private engineBaseUrl = "http://127.0.0.1:4100";
@@ -22,10 +20,22 @@ export class LiveTrackingService implements OnModuleInit {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit(): void {
-    this.engineBaseUrl = this.config.get<string>(
+    const raw = this.config.get<string>(
       "REALTIME_ENGINE_URL",
       "http://127.0.0.1:4100",
     );
+    const allow = (
+      this.config.get<string>(
+        "REALTIME_ENGINE_ALLOWED_HOSTS",
+        "127.0.0.1,localhost,realtime-engine",
+      ) ?? ""
+    )
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const url = assertAllowedInternalServiceUrl(raw, allow);
+    this.engineBaseUrl = url.origin;
     this.internalToken = this.config.get<string>(
       "INTERNAL_API_TOKEN",
       "dev-internal-token-change-me",
@@ -58,8 +68,8 @@ export class LiveTrackingService implements OnModuleInit {
       const fromDb = await this.fallback.getLatestPositions(flightIds);
       const reason =
         err instanceof CircuitOpenError ? "circuit_open" : "engine_error";
-      console.warn(
-        `[live-tracking] degraded (${reason}); serving ${fromDb.length} fallback rows`,
+      this.logger.warn(
+        `degraded (${reason}); serving ${fromDb.length} fallback rows`,
       );
       return {
         positions: fromDb,
@@ -72,6 +82,7 @@ export class LiveTrackingService implements OnModuleInit {
   private async fetchFromEngine(
     flightIds: string[],
   ): Promise<FlightPositionDto[]> {
+    // Base host already allowlisted — only append encoded query
     const url = new URL("/v1/positions/latest", this.engineBaseUrl);
     url.searchParams.set("flightIds", flightIds.join(","));
 
@@ -82,6 +93,7 @@ export class LiveTrackingService implements OnModuleInit {
       const res = await fetch(url, {
         headers: { "x-internal-token": this.internalToken },
         signal: controller.signal,
+        redirect: "error",
       });
       if (!res.ok) throw new Error(`engine HTTP ${res.status}`);
       const body = (await res.json()) as {

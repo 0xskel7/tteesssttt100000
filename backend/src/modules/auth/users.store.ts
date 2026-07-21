@@ -1,8 +1,14 @@
+import type { AppRole } from "../../common/decorators/roles.decorator";
+
 export interface UserRecord {
   id: string;
   email: string;
   passwordHash: string;
   displayName: string;
+  role: AppRole;
+  isActive: boolean;
+  /** Bumped on logout / password change to invalidate access JWTs */
+  tokenVersion: number;
   createdAt: string;
 }
 
@@ -23,5 +29,13 @@ export class UsersStore {
 
   findById(id: string): UserRecord | undefined {
     return this.byId.get(id);
+  }
+
+  bumpTokenVersion(userId: string): UserRecord | undefined {
+    const user = this.byId.get(userId);
+    if (!user) return undefined;
+    user.tokenVersion += 1;
+    this.upsert(user);
+    return user;
   }
 }

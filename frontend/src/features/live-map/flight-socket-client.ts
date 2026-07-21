@@ -13,6 +13,8 @@ export interface FlightSocketClientOptions {
   url: string;
   /** Socket.io path — must match engine (`/ws`) */
   path?: string;
+  /** Backend JWT access token required by realtime-engine handshake */
+  accessToken?: string;
   /** Called on every live or snapshot position */
   onPosition?: (update: FlightPositionUpdate) => void;
   onSnapshot?: (updates: FlightPositionUpdate[]) => void;
@@ -49,6 +51,9 @@ export class FlightSocketClient {
     this.socket = io(this.opts.url, {
       path: this.opts.path ?? "/ws",
       transports: ["websocket", "polling"],
+      auth: this.opts.accessToken
+        ? { token: this.opts.accessToken }
+        : undefined,
       // Built-in reconnection — keeps trying without wiping app state
       reconnection: true,
       reconnectionAttempts: Infinity,

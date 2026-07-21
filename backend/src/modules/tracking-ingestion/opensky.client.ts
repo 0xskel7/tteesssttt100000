@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { withRetry } from "../../common/utils/retry";
+import { assertAllowedOutboundUrl } from "../../common/security/ssrf";
 import { parseOpenSkyState, type OpenSkyStateVector } from "./opensky.types";
 
 @Injectable()
@@ -29,14 +30,33 @@ export class OpenSkyClient {
     const maxMs = this.config.get<number>("OPENSKY_BACKOFF_MAX_MS", 8000);
     const bbox = this.config.get<string>("OPENSKY_BBOX", "");
 
-    const url = new URL(`${base.replace(/\/$/, "")}/states/all`);
+    // SSRF: validate allowlisted HTTPS host before any fetch
+    const allowedBase = await assertAllowedOutboundUrl(base.replace(/\/$/, "") + "/");
+    const url = new URL("states/all", allowedBase);
+    // Force path — ignore any user/env path tricks beyond host allowlist
+    url.pathname = "/api/states/all";
+
     if (bbox) {
-      const [lamin, lomin, lamax, lomax] = bbox.split(",").map((s) => s.trim());
-      if (lamin && lomin && lamax && lomax) {
-        url.searchParams.set("lamin", lamin);
-        url.searchParams.set("lomin", lomin);
-        url.searchParams.set("lamax", lamax);
-        url.searchParams.set("lomax", lomax);
+      const parts = bbox.split(",").map((s) => s.trim());
+      if (parts.length === 4) {
+        const nums = parts.map(Number);
+        const [lamin, lomin, lamax, lomax] = nums;
+        if (
+          nums.every((n) => Number.isFinite(n)) &&
+          lamin! >= -90 &&
+          lamax! <= 90 &&
+          lomin! >= -180 &&
+          lomax! <= 180 &&
+          lamin! < lamax! &&
+          lomin! < lomax!
+        ) {
+          url.searchParams.set("lamin", String(lamin));
+          url.searchParams.set("lomin", String(lomin));
+          url.searchParams.set("lamax", String(lamax));
+          url.searchParams.set("lomax", String(lomax));
+        } else {
+          this.logger.warn("Ignoring invalid OPENSKY_BBOX");
+        }
       }
     }
 
@@ -71,6 +91,7 @@ export class OpenSkyClient {
       const res = await fetch(url, {
         signal: controller.signal,
         headers: { Accept: "application/json" },
+        redirect: "error", // SSRF: never follow redirects off-allowlist
       });
       if (!res.ok) {
         throw new Error(`OpenSky HTTP ${res.status}`);

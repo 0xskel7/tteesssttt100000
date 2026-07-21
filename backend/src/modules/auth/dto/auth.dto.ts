@@ -24,3 +24,10 @@ export class LoginDto {
   @MaxLength(128)
   password!: string;
 }
+
+export class RefreshDto {
+  @IsString()
+  @MinLength(20)
+  @MaxLength(512)
+  refreshToken!: string;
+}

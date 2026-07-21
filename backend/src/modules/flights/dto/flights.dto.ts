@@ -1,13 +1,35 @@
-import { IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from "class-validator";
+import type { FlightStatus } from "../flights.store";
 
-export class GetFlightParamsDto {
-  @IsUUID()
-  id!: string;
-}
+const FLIGHT_STATUSES = [
+  "scheduled",
+  "boarding",
+  "departed",
+  "in_air",
+  "landed",
+  "arrived",
+  "delayed",
+  "cancelled",
+  "diverted",
+  "unknown",
+] as const satisfies readonly FlightStatus[];
 
 export class ListFlightsQueryDto {
   @IsOptional()
   @IsString()
-  @MaxLength(16)
-  status?: string;
+  @IsIn(FLIGHT_STATUSES)
+  status?: FlightStatus;
+}
+
+/** Injection-safe: only UUID-shaped ids, capped length. */
+export class LatestFlightIdsQueryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(3700)
+  flightIds?: string;
 }

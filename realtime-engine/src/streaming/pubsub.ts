@@ -1,5 +1,6 @@
 import type { Redis } from "ioredis";
 import type { Server } from "socket.io";
+import { z } from "zod";
 import type { AppConfig } from "../config/env";
 import {
   SOCKET_EVENTS,
@@ -8,13 +9,18 @@ import {
 } from "../types/position";
 import type { PositionSnapshotStore } from "../state/snapshot-store";
 
-/**
- * Pub/Sub hub:
- * - Publishers (ingest pipeline / other engine instances) → Redis channel
- * - This process SUBSCRIBEs and fans out only to Socket.io rooms for that flight
- *
- * Clients never receive the full firehose — they join `flight:{id}` rooms only.
- */
+const positionSchema = z.object({
+  flightId: z.string().uuid(),
+  latitude: z.number().finite().min(-90).max(90),
+  longitude: z.number().finite().min(-180).max(180),
+  altitudeFt: z.number().finite().nullable(),
+  groundSpeedKts: z.number().finite().nullable(),
+  headingDeg: z.number().finite().min(0).max(360).nullable(),
+  onGround: z.boolean().nullable(),
+  recordedAt: z.string().min(10).max(40),
+  source: z.string().min(1).max(32),
+});
+
 export class PositionPubSub {
   constructor(
     private readonly config: AppConfig,
@@ -35,29 +41,34 @@ export class PositionPubSub {
     );
   }
 
-  /** Ingest / simulator / other services call this to publish a position. */
   async publish(update: FlightPositionUpdate): Promise<void> {
-    await this.snapshots.save(update);
+    const parsed = positionSchema.parse(update);
+    await this.snapshots.save(parsed);
     await this.publisher.publish(
       this.config.REDIS_POSITIONS_CHANNEL,
-      JSON.stringify(update),
+      JSON.stringify(parsed),
     );
   }
 
   private async onMessage(message: string): Promise<void> {
-    let update: FlightPositionUpdate;
+    if (message.length > 4096) {
+      console.warn("[pubsub] payload too large — dropped");
+      return;
+    }
+    let raw: unknown;
     try {
-      update = JSON.parse(message) as FlightPositionUpdate;
+      raw = JSON.parse(message);
     } catch {
       console.warn("[pubsub] invalid JSON payload");
       return;
     }
-    if (!update?.flightId) return;
-
-    // Persist snapshot even if this instance didn't publish (multi-node)
+    const parsed = positionSchema.safeParse(raw);
+    if (!parsed.success) {
+      console.warn("[pubsub] schema validation failed");
+      return;
+    }
+    const update = parsed.data;
     await this.snapshots.save(update);
-
-    // Targeted fan-out: only sockets that subscribed to this flight
     this.io
       .to(flightRoom(update.flightId))
       .emit(SOCKET_EVENTS.POSITION_UPDATE, update);

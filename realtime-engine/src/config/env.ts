@@ -14,9 +14,19 @@ const envSchema = z.object({
   WS_MAX_SUBSCRIBE_PER_MINUTE: z.coerce.number().default(60),
   WS_MAX_EVENTS_PER_SECOND: z.coerce.number().default(20),
   WS_SUBSCRIBE_BURST: z.coerce.number().default(10),
+  WS_MAX_ROOMS_PER_SOCKET: z.coerce.number().default(50),
+  /** Only trust X-Forwarded-For when behind a known proxy */
+  TRUST_PROXY: z
+    .string()
+    .default("0")
+    .transform((v) => v === "1" || v.toLowerCase() === "true"),
   POSITION_SNAPSHOT_TTL_SECONDS: z.coerce.number().default(3600),
   CORS_ORIGINS: z.string().default("http://localhost:3000"),
-  INTERNAL_API_TOKEN: z.string().min(8),
+  INTERNAL_API_TOKEN: z.string().min(16),
+  /** Same secret as backend JWT_SECRET — verifies WS access tokens */
+  JWT_SECRET: z.string().min(16),
+  JWT_ISSUER: z.string().default("flight-platform"),
+  JWT_AUDIENCE: z.string().default("api"),
 });
 
 export type AppConfig = z.infer<typeof envSchema> & {
@@ -30,8 +40,15 @@ export function loadConfig(): AppConfig {
     throw new Error("Invalid realtime-engine environment configuration");
   }
   const data = parsed.data;
-  return {
-    ...data,
-    corsOrigins: data.CORS_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean),
-  };
+  const corsOrigins = data.CORS_ORIGINS.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (data.NODE_ENV === "production") {
+    if (corsOrigins.includes("*") || corsOrigins.length === 0) {
+      throw new Error("CORS_ORIGINS must be an explicit allowlist in production");
+    }
+  }
+
+  return { ...data, corsOrigins };
 }

@@ -1,11 +1,11 @@
-import { Module } from "@nestjs/common";
+import { Module, ValidationPipe } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-import { ValidationPipe } from "@nestjs/common";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
+import { RolesGuard } from "./common/guards/roles.guard";
 import { SanitizeResponseInterceptor } from "./common/interceptors/sanitize.interceptor";
 import { AircraftModule } from "./modules/aircraft/aircraft.module";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -48,6 +48,7 @@ import { TrackingIngestionModule } from "./modules/tracking-ingestion/tracking-i
     },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_INTERCEPTOR, useClass: SanitizeResponseInterceptor },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],

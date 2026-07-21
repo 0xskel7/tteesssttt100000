@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { colors, motion as motionTokens, radii, space, typography } from "@/shared/design-tokens";
+import { safeDisplayText } from "@/shared/lib/safe-text";
 import type { LiveFlight } from "../types";
 import { formatAltitude, formatEtaRemaining, formatSpeed, routeLabel } from "../lib/format";
 
@@ -26,8 +27,8 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
         >
           <div style={headerStyle}>
             <div>
-              <p style={eyebrowStyle}>{flight.aircraft.airlineName}</p>
-              <h2 style={titleStyle}>{flight.flightNumber}</h2>
+              <p style={eyebrowStyle}>{safeDisplayText(flight.aircraft.airlineName, 60)}</p>
+              <h2 style={titleStyle}>{safeDisplayText(flight.flightNumber, 16)}</h2>
               <p style={routeStyle}>{routeLabel(flight)}</p>
             </div>
             <button type="button" onClick={onClose} style={closeStyle} aria-label="Close panel">
@@ -72,8 +73,10 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
           </div>
 
           <div style={metaRow}>
-            <span>{flight.aircraft.typeName}</span>
-            <span style={{ fontFamily: typography.fontMono }}>{flight.aircraft.registration}</span>
+            <span>{safeDisplayText(flight.aircraft.typeName, 60)}</span>
+            <span style={{ fontFamily: typography.fontMono }}>
+              {safeDisplayText(flight.aircraft.registration, 16)}
+            </span>
           </div>
         </motion.aside>
       ) : null}
@@ -94,9 +97,11 @@ function AirportBlock({
     <div>
       <p style={eyebrowStyle}>{label}</p>
       <p style={{ fontFamily: typography.fontDisplay, fontSize: typography.size.xl, fontWeight: 700 }}>
-        {code}
+        {safeDisplayText(code, 8)}
       </p>
-      <p style={{ color: colors.text.secondary, fontSize: typography.size.sm }}>{city}</p>
+      <p style={{ color: colors.text.secondary, fontSize: typography.size.sm }}>
+        {safeDisplayText(city, 40)}
+      </p>
     </div>
   );
 }

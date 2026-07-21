@@ -45,7 +45,7 @@ async function bootstrap() {
   );
   await pubsub.start();
 
-  registerSocketGateway(io, rateLimiter, snapshots);
+  registerSocketGateway(io, rateLimiter, snapshots, config);
 
   // Expose publisher for ingest simulator / future provider adapters
   (global as unknown as { __flightPubSub?: PositionPubSub }).__flightPubSub = pubsub;

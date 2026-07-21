@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { AuthBootstrap } from "./auth.bootstrap";
 import { UsersStore } from "./users.store";
 
 @Global()
@@ -14,13 +15,15 @@ import { UsersStore } from "./users.store";
       useFactory: (config: ConfigService) => ({
         secret: config.getOrThrow<string>("JWT_SECRET"),
         signOptions: {
-          expiresIn: config.get<string>("JWT_EXPIRES_IN", "7d"),
+          algorithm: "HS256" as const,
+          issuer: "flight-platform",
+          audience: "api",
         },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersStore],
+  providers: [AuthService, UsersStore, AuthBootstrap],
   exports: [AuthService, UsersStore, JwtModule],
 })
 export class AuthModule {}

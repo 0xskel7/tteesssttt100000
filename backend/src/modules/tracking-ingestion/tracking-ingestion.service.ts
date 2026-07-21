@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { AircraftService } from "../aircraft/aircraft.service";
 import { FlightsService } from "../flights/flights.service";
+import { sanitizeUntrustedText } from "../../common/security/hardening";
 import { OpenSkyClient } from "./opensky.client";
 import {
   metersToFeet,
@@ -192,8 +193,8 @@ export class TrackingIngestionService {
 
     return {
       icao24: state.icao24,
-      callsign: state.callsign,
-      originCountry: state.originCountry,
+      callsign: sanitizeUntrustedText(state.callsign, 16),
+      originCountry: sanitizeUntrustedText(state.originCountry, 64),
       latitude: state.latitude,
       longitude: state.longitude,
       altitudeFt:
