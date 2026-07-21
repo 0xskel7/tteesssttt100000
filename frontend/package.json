@@ -2,14 +2,26 @@
   "name": "@flight-platform/frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Frontend feature modules — includes realtime map socket client",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "postinstall": "node scripts/copy-cesium-assets.mjs",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "next lint"
   },
   "dependencies": {
+    "cesium": "^1.125.0",
+    "framer-motion": "^11.15.0",
+    "next": "^14.2.21",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
     "typescript": "^5.7.3"
   }
 }

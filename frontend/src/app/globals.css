@@ -1,0 +1,68 @@
+:root {
+  /* Horizon design tokens (CSS mirror of shared/design-tokens) */
+  --hz-brand-primary: #3ee0c5;
+  --hz-brand-ink: #07131f;
+  --hz-surface-void: #050b12;
+  --hz-surface-deep: #0a1624;
+  --hz-surface-panel: rgba(8, 18, 32, 0.88);
+  --hz-surface-line: rgba(180, 210, 230, 0.14);
+  --hz-text-primary: #f3f8fc;
+  --hz-text-secondary: #9bb4c7;
+  --hz-text-muted: #6e879b;
+  --hz-flight-path: #5ce1ff;
+  --hz-flight-selected: #ffc857;
+  --hz-font-display: "Syne", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --hz-font-body: "IBM Plex Sans Arabic", "Manrope", system-ui, sans-serif;
+  --hz-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --hz-radius-md: 14px;
+  --hz-space-md: 1rem;
+  --hz-space-lg: 1.5rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--hz-surface-void);
+  color: var(--hz-text-primary);
+  font-family: var(--hz-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 90% 60% at 10% 0%, rgba(62, 224, 197, 0.12), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(92, 225, 255, 0.08), transparent 45%),
+    var(--hz-surface-void);
+}
+
+a {
+  color: var(--hz-brand-primary);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Cesium injects widgets — hide leftover credit chrome we moved off-screen */
+.cesium-viewer-bottom,
+.cesium-viewer-toolbar,
+.cesium-viewer-animationContainer,
+.cesium-viewer-timelineContainer {
+  display: none !important;
+}
+
+.cesium-viewer,
+.cesium-viewer-cesiumWidgetContainer,
+.cesium-widget,
+.cesium-widget canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
