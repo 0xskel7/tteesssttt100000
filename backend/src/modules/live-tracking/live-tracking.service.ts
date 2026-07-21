@@ -1,29 +1,37 @@
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { CircuitBreaker } from "./circuit-breaker";
 import {
-  CircuitBreaker,
-  CircuitOpenError,
-} from "./circuit-breaker";
-import type { PositionFallbackRepository } from "./fallback-repository";
+  InMemoryPositionFallback,
+  type PositionFallbackRepository,
+} from "./fallback-repository";
 import type { FlightPositionDto, LatestPositionsResult } from "./types";
-
-export interface LiveTrackingClientOptions {
-  engineBaseUrl: string;
-  internalToken: string;
-  timeoutMs?: number;
-}
+import { CircuitOpenError } from "./circuit-breaker";
 
 /**
- * Backend → Realtime Engine client.
- * Circuit Breaker ensures engine outages do not cascade into Auth / Flights APIs.
+ * Nest-wrapped live-tracking client (Circuit Breaker → realtime-engine).
  */
-export class LiveTrackingService {
-  private readonly breaker: CircuitBreaker;
-  private readonly timeoutMs: number;
+@Injectable()
+export class LiveTrackingService implements OnModuleInit {
+  private breaker!: CircuitBreaker;
+  private fallback!: PositionFallbackRepository;
+  private engineBaseUrl = "http://127.0.0.1:4100";
+  private internalToken = "dev-internal-token-change-me";
+  private timeoutMs = 2000;
 
-  constructor(
-    private readonly opts: LiveTrackingClientOptions,
-    private readonly fallback: PositionFallbackRepository,
-  ) {
-    this.timeoutMs = opts.timeoutMs ?? 2000;
+  constructor(private readonly config: ConfigService) {}
+
+  onModuleInit(): void {
+    this.engineBaseUrl = this.config.get<string>(
+      "REALTIME_ENGINE_URL",
+      "http://127.0.0.1:4100",
+    );
+    this.internalToken = this.config.get<string>(
+      "INTERNAL_API_TOKEN",
+      "dev-internal-token-change-me",
+    );
+    this.timeoutMs = this.config.get<number>("LIVE_TRACKING_TIMEOUT_MS", 2000);
+    this.fallback = new InMemoryPositionFallback();
     this.breaker = new CircuitBreaker({
       name: "realtime-engine",
       failureThreshold: 3,
@@ -33,7 +41,7 @@ export class LiveTrackingService {
   }
 
   getCircuitState() {
-    return this.breaker.getState();
+    return this.breaker?.getState() ?? "closed";
   }
 
   async getLatestPositions(flightIds: string[]): Promise<LatestPositionsResult> {
@@ -61,8 +69,10 @@ export class LiveTrackingService {
     }
   }
 
-  private async fetchFromEngine(flightIds: string[]): Promise<FlightPositionDto[]> {
-    const url = new URL("/v1/positions/latest", this.opts.engineBaseUrl);
+  private async fetchFromEngine(
+    flightIds: string[],
+  ): Promise<FlightPositionDto[]> {
+    const url = new URL("/v1/positions/latest", this.engineBaseUrl);
     url.searchParams.set("flightIds", flightIds.join(","));
 
     const controller = new AbortController();
@@ -70,23 +80,15 @@ export class LiveTrackingService {
 
     try {
       const res = await fetch(url, {
-        headers: { "x-internal-token": this.opts.internalToken },
+        headers: { "x-internal-token": this.internalToken },
         signal: controller.signal,
       });
-
-      if (!res.ok) {
-        throw new Error(`engine HTTP ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error(`engine HTTP ${res.status}`);
       const body = (await res.json()) as {
         degraded?: boolean;
         positions?: FlightPositionDto[];
       };
-
-      if (body.degraded) {
-        throw new Error("engine degraded");
-      }
-
+      if (body.degraded) throw new Error("engine degraded");
       return body.positions ?? [];
     } finally {
       clearTimeout(timer);
