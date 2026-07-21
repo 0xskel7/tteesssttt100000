@@ -52,6 +52,17 @@ console.log(
       errors,
       failed,
       badResponses,
+      modelResources: await page.evaluate(() =>
+        performance
+          .getEntriesByType("resource")
+          .filter((entry) => entry.name.includes("aircraft"))
+          .map((entry) => ({
+            name: entry.name,
+            duration: entry.duration,
+            transferSize:
+              "transferSize" in entry ? entry.transferSize : undefined,
+          })),
+      ),
       viewport: page.viewportSize(),
       output,
     },
