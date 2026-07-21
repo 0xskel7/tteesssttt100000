@@ -23,6 +23,7 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
           exit={{ x: 36, opacity: 0 }}
           transition={motionTokens.spring}
           aria-label={`Flight ${flight.flightNumber} details`}
+          className="flight-panel"
           style={panelStyle}
         >
           <div style={headerStyle}>
@@ -40,6 +41,7 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: motionTokens.base }}
+            className="flight-panel-route"
             style={routeBlockStyle}
           >
             <AirportBlock code={flight.origin.code} city={flight.origin.city} label="From" />
@@ -51,7 +53,7 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
             />
           </motion.div>
 
-          <dl style={statsGrid}>
+          <dl className="flight-panel-stats" style={statsGrid}>
             <Stat label="Altitude" value={formatAltitude(flight.altitudeFt)} accent={colors.flight.altitude} />
             <Stat label="Speed" value={formatSpeed(flight.groundSpeedKts)} />
             <Stat label="Heading" value={`${Math.round(flight.headingDeg)}°`} />
@@ -133,11 +135,6 @@ function Stat({
 }
 
 const panelStyle: CSSProperties = {
-  position: "absolute",
-  top: space.lg,
-  right: space.lg,
-  bottom: space.lg,
-  width: `min(${space.panelWidth}, calc(100vw - 2rem))`,
   zIndex: 20,
   display: "flex",
   flexDirection: "column",

@@ -1,5 +1,4 @@
 :root {
-  /* Horizon design tokens (CSS mirror of shared/design-tokens) */
   --hz-brand-primary: #3ee0c5;
   --hz-brand-ink: #07131f;
   --hz-surface-void: #050b12;
@@ -30,10 +29,12 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  width: 100%;
   background: var(--hz-surface-void);
   color: var(--hz-text-primary);
   font-family: var(--hz-font-body);
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
 body {
@@ -51,8 +52,6 @@ button {
   font-family: inherit;
 }
 
-/* Cesium injects widgets — hide leftover credit chrome we moved off-screen */
-.cesium-viewer-bottom,
 .cesium-viewer-toolbar,
 .cesium-viewer-animationContainer,
 .cesium-viewer-timelineContainer {
@@ -65,4 +64,308 @@ button {
 .cesium-widget canvas {
   width: 100% !important;
   height: 100% !important;
+}
+
+.cesium-viewer-bottom {
+  left: auto !important;
+  right: 8px !important;
+  bottom: 4px !important;
+  opacity: 0.62;
+  transform: scale(0.78);
+  transform-origin: right bottom;
+}
+
+.map-shell {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #dfe8ec;
+}
+
+.map-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 11, 18, 0.4) 0, transparent 25%),
+    radial-gradient(circle at 50% 50%, transparent 55%, rgba(4, 11, 18, 0.2) 100%);
+}
+
+.globe-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.map-header {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(620px, calc(100vw - 450px));
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(7, 19, 31, 0.82);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.brand-lockup p {
+  font-size: 1.3rem;
+  letter-spacing: -0.04em;
+}
+
+.brand-lockup span {
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(62, 224, 197, 0.15);
+  color: var(--hz-brand-primary);
+  font: 600 0.58rem var(--hz-font-mono);
+  letter-spacing: 0.12em;
+}
+
+.map-search {
+  display: flex;
+  align-items: center;
+  flex: 1 1 360px;
+  min-width: 220px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.map-search svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: #466070;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.map-search input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 0 0 11px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172a37;
+  font: 600 0.88rem var(--hz-font-body);
+}
+
+.map-search input::placeholder {
+  color: #6b8290;
+  font-weight: 500;
+}
+
+.flight-chips {
+  position: absolute;
+  top: 82px;
+  left: 20px;
+  z-index: 25;
+  display: flex;
+  gap: 8px;
+  max-width: calc(100vw - 450px);
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scrollbar-width: none;
+}
+
+.flight-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.flight-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(8, 18, 32, 0.84);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.flight-chip:hover,
+.flight-chip.is-active {
+  border-color: rgba(62, 224, 197, 0.8);
+  background: rgba(12, 39, 48, 0.94);
+}
+
+.flight-chip-number {
+  color: var(--hz-brand-primary);
+  font: 700 0.78rem var(--hz-font-mono);
+}
+
+.flight-chip-route {
+  color: #d4e1e8;
+  font-size: 0.72rem;
+}
+
+.flight-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  bottom: 20px;
+  width: min(380px, calc(100vw - 2rem));
+}
+
+.render-badge {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(8, 18, 32, 0.82);
+  color: #9bb4c7;
+  font-size: 0.66rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.render-badge span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3ee0c5;
+  box-shadow: 0 0 9px #3ee0c5;
+}
+
+@media (max-width: 960px) {
+  .map-header {
+    width: calc(100vw - 40px);
+  }
+
+  .flight-chips {
+    max-width: calc(100vw - 40px);
+  }
+}
+
+@media (max-width: 720px) {
+  .map-shell {
+    min-height: 100dvh;
+  }
+
+  .map-header {
+    top: max(10px, env(safe-area-inset-top));
+    left: 10px;
+    width: calc(100vw - 20px);
+    gap: 8px;
+  }
+
+  .brand-lockup {
+    height: 44px;
+    padding: 6px 10px;
+    border-radius: 13px;
+  }
+
+  .brand-lockup p {
+    font-size: 1.05rem;
+  }
+
+  .brand-lockup span {
+    display: none;
+  }
+
+  .map-search {
+    height: 44px;
+    min-width: 0;
+    padding: 0 12px;
+    border-radius: 13px;
+  }
+
+  .map-search input {
+    font-size: 0.78rem;
+  }
+
+  .flight-chips {
+    top: calc(max(10px, env(safe-area-inset-top)) + 52px);
+    left: 8px;
+    max-width: calc(100vw - 8px);
+    padding-right: 12px;
+  }
+
+  .flight-chip {
+    height: 34px;
+    padding: 0 11px;
+  }
+
+  .flight-panel {
+    top: auto;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
+    width: auto;
+    max-height: min(52dvh, 470px);
+    padding: 15px !important;
+    gap: 10px !important;
+    border-radius: 22px !important;
+  }
+
+  .flight-panel-route {
+    padding: 11px !important;
+  }
+
+  .flight-panel-stats {
+    gap: 7px !important;
+  }
+
+  .flight-panel-stats > div {
+    padding: 10px !important;
+  }
+
+  .render-badge {
+    left: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    padding: 6px 9px;
+  }
+
+  .cesium-viewer-bottom {
+    bottom: 48px !important;
+    max-width: 70vw;
+  }
+}
+
+@media (max-width: 380px) {
+  .map-search input::placeholder {
+    color: transparent;
+  }
+
+  .flight-panel {
+    max-height: 55dvh;
+  }
 }

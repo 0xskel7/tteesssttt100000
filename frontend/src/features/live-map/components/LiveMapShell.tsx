@@ -1,37 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useCallback, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { FlightDetailPanel } from "@/features/flight-tracking/components/FlightDetailPanel";
 import { DEMO_FLIGHTS } from "@/features/flight-tracking/demo-flights";
 import type { LiveFlight } from "@/features/flight-tracking/types";
 import { FeatureErrorBoundary } from "@/shared/ui-error-boundary";
-import { colors, space, typography } from "@/shared/design-tokens";
+import { colors, typography } from "@/shared/design-tokens";
 import { loadMapView, saveMapView } from "../map-view-persistence";
-
-const CesiumFlightGlobe = dynamic(
-  () =>
-    import("./CesiumFlightGlobe").then((m) => m.CesiumFlightGlobe),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "grid",
-          placeItems: "center",
-          background: colors.surface.void,
-          color: colors.text.secondary,
-          fontFamily: typography.fontBody,
-        }}
-      >
-        Loading globe…
-      </div>
-    ),
-  },
-);
+import { CesiumFlightGlobe } from "./CesiumFlightGlobe";
 
 interface Props {
   initialFlights?: LiveFlight[];
@@ -45,11 +22,25 @@ export function LiveMapShell({
 }: Props) {
   const [flights] = useState(initialFlights);
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
+  const [query, setQuery] = useState("");
 
   const selected = useMemo(
     () => flights.find((f) => f.id === selectedId) ?? null,
     [flights, selectedId],
   );
+  const visibleFlights = useMemo(() => {
+    const value = query.trim().toLowerCase();
+    if (!value) return flights;
+    return flights.filter((flight) =>
+      [
+        flight.flightNumber,
+        flight.callsign,
+        flight.origin.code,
+        flight.destination.code,
+        flight.aircraft.airlineName,
+      ].some((field) => field.toLowerCase().includes(value)),
+    );
+  }, [flights, query]);
 
   const onSelectFlight = useCallback((id: string | null) => {
     setSelectedId(id);
@@ -59,7 +50,7 @@ export function LiveMapShell({
   }, []);
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100dvh", overflow: "hidden" }}>
+    <main className="map-shell">
       <FeatureErrorBoundary title="Map failed">
         <CesiumFlightGlobe
           flights={flights}
@@ -68,53 +59,70 @@ export function LiveMapShell({
         />
       </FeatureErrorBoundary>
 
-      <BrandChrome />
+      <BrandChrome query={query} onQueryChange={setQuery} />
+
+      <nav className="flight-chips" aria-label="Available flights">
+        {visibleFlights.map((flight) => (
+          <motion.button
+            key={flight.id}
+            type="button"
+            whileTap={{ scale: 0.97 }}
+            className={`flight-chip${selectedId === flight.id ? " is-active" : ""}`}
+            onClick={() => onSelectFlight(flight.id)}
+          >
+            <span className="flight-chip-number">{flight.flightNumber}</span>
+            <span className="flight-chip-route">
+              {flight.origin.code} → {flight.destination.code}
+            </span>
+          </motion.button>
+        ))}
+      </nav>
 
       <FeatureErrorBoundary title="Flight panel failed">
         <FlightDetailPanel flight={selected} onClose={() => onSelectFlight(null)} />
       </FeatureErrorBoundary>
-    </div>
+    </main>
   );
 }
 
-function BrandChrome() {
+function BrandChrome({
+  query,
+  onQueryChange,
+}: {
+  query: string;
+  onQueryChange: (value: string) => void;
+}) {
   return (
     <motion.header
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      style={{
-        position: "absolute",
-        top: space.lg,
-        left: space.lg,
-        zIndex: 30,
-        pointerEvents: "none",
-      }}
+      className="map-header"
     >
-      <p
-        style={{
-          margin: 0,
-          fontFamily: typography.fontDisplay,
-          fontSize: "clamp(2rem, 4vw, 2.75rem)",
-          fontWeight: 700,
-          letterSpacing: "-0.04em",
-          color: colors.text.primary,
-          textShadow: "0 8px 32px rgba(0,0,0,0.55)",
-        }}
-      >
-        Horizon
-      </p>
-      <p
-        style={{
-          marginTop: 4,
-          color: colors.text.secondary,
-          fontFamily: typography.fontBody,
-          fontSize: typography.size.sm,
-          maxWidth: "28ch",
-        }}
-      >
-        Live flights on a true 3D globe — altitude, bearing, and path.
-      </p>
+      <div className="brand-lockup">
+        <p
+          style={{
+            margin: 0,
+            fontFamily: typography.fontDisplay,
+            fontWeight: 700,
+            color: colors.text.primary,
+          }}
+        >
+          Horizon
+        </p>
+        <span>LIVE</span>
+      </div>
+      <label className="map-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+        </svg>
+        <input
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder="Search flight, airport or airline"
+          aria-label="Search flights"
+        />
+      </label>
     </motion.header>
   );
 }

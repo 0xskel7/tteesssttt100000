@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { LiveFlight } from "@/features/flight-tracking/types";
 import { colors } from "@/shared/design-tokens";
 
+type CesiumModule = typeof import("cesium");
+
 interface Props {
   flights: LiveFlight[];
   selectedFlightId: string | null;
@@ -35,13 +37,8 @@ export function CesiumFlightGlobe({
       if (!containerRef.current) return;
 
       try {
-
-        (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL =
-          `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/cesium/`;
-
-        const Cesium = await import("cesium");
-
-        await import("cesium/Build/Cesium/Widgets/widgets.css");
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+        const Cesium = await loadCesium(basePath);
 
         if (cancelled || !containerRef.current) return;
 
@@ -60,7 +57,7 @@ export function CesiumFlightGlobe({
           fullscreenButton: false,
           infoBox: false,
           selectionIndicator: false,
-          creditContainer: document.createElement("div"),
+          baseLayer: false,
           terrain: undefined,
         });
 
@@ -79,9 +76,9 @@ export function CesiumFlightGlobe({
           viewer.imageryLayers.removeAll();
           viewer.imageryLayers.addImageryProvider(
             new Cesium.UrlTemplateImageryProvider({
-              url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-              credit: "© OpenStreetMap",
-              maximumLevel: 8,
+              url: "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+              credit: "© OpenStreetMap © CARTO",
+              maximumLevel: 20,
             }),
           );
         } catch {
@@ -94,7 +91,7 @@ export function CesiumFlightGlobe({
 
         const modelUrl =
           process.env.NEXT_PUBLIC_AIRCRAFT_MODEL_URL ??
-          "/models/aircraft.glb";
+          `${basePath}/models/aircraft.glb`;
 
         const modelOk = await probeModel(modelUrl);
         if (!modelOk) {
@@ -273,7 +270,7 @@ export function CesiumFlightGlobe({
   }, [selectedFlightId]);
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+    <div className="globe-stage">
       <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
       {bootError ? (
         <div
@@ -294,20 +291,8 @@ export function CesiumFlightGlobe({
           </div>
         </div>
       ) : null}
-      <div
-        style={{
-          position: "absolute",
-          left: 16,
-          bottom: 16,
-          zIndex: 5,
-          fontSize: 11,
-          color: colors.text.muted,
-          background: colors.surface.panel,
-          border: `1px solid ${colors.surface.line}`,
-          borderRadius: 999,
-          padding: "6px 12px",
-        }}
-      >
+      <div className="render-badge">
+        <span />
         Aircraft render: {modelMode === "3d" ? "3D glTF" : "2D fallback"}
       </div>
     </div>
@@ -319,7 +304,7 @@ function feetToMeters(ft: number): number {
 }
 
 function flyToFlight(
-  Cesium: typeof import("cesium"),
+  Cesium: CesiumModule,
   viewer: import("cesium").Viewer,
   flight: LiveFlight,
 ): void {
@@ -340,7 +325,7 @@ function flyToFlight(
 }
 
 function updatePath(
-  Cesium: typeof import("cesium"),
+  Cesium: CesiumModule,
   viewer: import("cesium").Viewer,
   flight: LiveFlight,
   selected: boolean,
@@ -428,4 +413,61 @@ function createAircraftCanvas(headingDeg: number, selected: boolean): string {
   ctx.stroke();
 
   return canvas.toDataURL();
+}
+
+let cesiumPromise: Promise<CesiumModule> | null = null;
+
+function loadCesium(basePath: string): Promise<CesiumModule> {
+  const root = window as unknown as {
+    CESIUM_BASE_URL?: string;
+    Cesium?: CesiumModule;
+  };
+  if (root.Cesium) return Promise.resolve(root.Cesium);
+  if (cesiumPromise) return cesiumPromise;
+
+  root.CESIUM_BASE_URL = `${basePath}/cesium/`;
+
+  if (!document.querySelector('link[data-cesium-widgets="true"]')) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `${basePath}/cesium/Widgets/widgets.css`;
+    link.dataset.cesiumWidgets = "true";
+    document.head.appendChild(link);
+  }
+
+  cesiumPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-cesium-runtime="true"]',
+    );
+    const script = existing ?? document.createElement("script");
+    const timeout = window.setTimeout(
+      () => reject(new Error("Cesium runtime timed out")),
+      30_000,
+    );
+
+    const done = () => {
+      window.clearTimeout(timeout);
+      if (root.Cesium) resolve(root.Cesium);
+      else reject(new Error("Cesium runtime unavailable"));
+    };
+
+    script.addEventListener("load", done, { once: true });
+    script.addEventListener(
+      "error",
+      () => {
+        window.clearTimeout(timeout);
+        reject(new Error("Cesium runtime failed to load"));
+      },
+      { once: true },
+    );
+
+    if (!existing) {
+      script.src = `${basePath}/cesium/Cesium.js`;
+      script.async = true;
+      script.dataset.cesiumRuntime = "true";
+      document.head.appendChild(script);
+    }
+  });
+
+  return cesiumPromise;
 }
