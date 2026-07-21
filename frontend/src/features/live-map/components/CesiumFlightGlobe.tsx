@@ -144,6 +144,25 @@ export function CesiumFlightGlobe({
                     selected ? 0.45 : 0.15,
                   );
                 }
+                if (entity.point) {
+                  entity.point.pixelSize = new Cesium.ConstantProperty(
+                    selected ? 18 : 13,
+                  );
+                  entity.point.color = new Cesium.ConstantProperty(
+                    Cesium.Color.fromCssColorString(
+                      selected
+                        ? "rgba(255, 200, 87, 0.28)"
+                        : "rgba(62, 224, 197, 0.22)",
+                    ),
+                  );
+                  entity.point.outlineColor = new Cesium.ConstantProperty(
+                    Cesium.Color.fromCssColorString(
+                      selected
+                        ? colors.flight.selected
+                        : colors.brand.primary,
+                    ),
+                  );
+                }
                 updatePath(Cesium, viewer, flight, selected);
                 continue;
               }
@@ -161,7 +180,7 @@ export function CesiumFlightGlobe({
                 ? {
                     model: {
                       uri: modelUrl,
-                      minimumPixelSize: 48,
+                      minimumPixelSize: 64,
                       maximumScale: 20_000,
                       scale: 1.0,
                       color: selected
@@ -180,6 +199,19 @@ export function CesiumFlightGlobe({
                       scale: selected ? 1.15 : 1,
                     },
                   }),
+              point: {
+                pixelSize: selected ? 18 : 13,
+                color: Cesium.Color.fromCssColorString(
+                  selected
+                    ? "rgba(255, 200, 87, 0.28)"
+                    : "rgba(62, 224, 197, 0.22)",
+                ),
+                outlineColor: Cesium.Color.fromCssColorString(
+                  selected ? colors.flight.selected : colors.brand.primary,
+                ),
+                outlineWidth: 2,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              },
               label: {
                 text: flight.flightNumber,
                 font: "600 12px IBM Plex Sans Arabic, sans-serif",
@@ -347,13 +379,41 @@ function flyToFlight(
   viewer: import("cesium").Viewer,
   flight: LiveFlight,
 ): void {
+  const minLon = Math.min(
+    flight.longitude,
+    flight.origin.longitude,
+    flight.destination.longitude,
+  );
+  const maxLon = Math.max(
+    flight.longitude,
+    flight.origin.longitude,
+    flight.destination.longitude,
+  );
+  const minLat = Math.min(
+    flight.latitude,
+    flight.origin.latitude,
+    flight.destination.latitude,
+  );
+  const maxLat = Math.max(
+    flight.latitude,
+    flight.origin.latitude,
+    flight.destination.latitude,
+  );
+  const compactRoute = maxLon - minLon <= 12 && maxLat - minLat <= 9;
   viewer.camera.flyTo({
-    destination: Cesium.Rectangle.fromDegrees(
-      flight.longitude - 2.6,
-      flight.latitude - 1.7,
-      flight.longitude + 2.6,
-      flight.latitude + 1.7,
-    ),
+    destination: compactRoute
+      ? Cesium.Rectangle.fromDegrees(
+          minLon - 1.2,
+          minLat - 1,
+          maxLon + 1.2,
+          maxLat + 1,
+        )
+      : Cesium.Rectangle.fromDegrees(
+          flight.longitude - 4,
+          flight.latitude - 2.8,
+          flight.longitude + 4,
+          flight.latitude + 2.8,
+        ),
     duration: 1.6,
   });
 }
