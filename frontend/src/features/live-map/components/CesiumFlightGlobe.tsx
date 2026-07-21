@@ -31,6 +31,7 @@ export function CesiumFlightGlobe({
   useEffect(() => {
     let viewer: import("cesium").Viewer | null = null;
     let cancelled = false;
+    let modelObjectUrl: string | null = null;
     const entityIds = new Map<string, string>();
 
     async function boot() {
@@ -89,14 +90,13 @@ export function CesiumFlightGlobe({
           destination: Cesium.Cartesian3.fromDegrees(45, 25, 12_000_000),
         });
 
-        const modelUrl =
+        const requestedModelUrl =
           process.env.NEXT_PUBLIC_AIRCRAFT_MODEL_URL ??
           `${basePath}/models/aircraft.gltf`;
-
-        const modelOk = await probeModel(modelUrl);
-        if (!modelOk) {
-          setModelMode("2d-fallback");
-        }
+        modelObjectUrl = await prepareAircraftModel(requestedModelUrl);
+        const modelOk = Boolean(modelObjectUrl);
+        const modelUrl = modelObjectUrl ?? requestedModelUrl;
+        if (!modelOk) setModelMode("2d-fallback");
 
         const syncEntities = () => {
           if (!viewer) return;
@@ -260,6 +260,7 @@ export function CesiumFlightGlobe({
         cleanup?.();
         viewer.destroy();
       }
+      if (modelObjectUrl) URL.revokeObjectURL(modelObjectUrl);
     };
   }, []);
 
@@ -368,18 +369,6 @@ function updatePath(
   });
 }
 
-async function probeModel(url: string): Promise<boolean> {
-  try {
-    const res = await fetch(url, { method: "HEAD" });
-    if (res.ok) return true;
-
-    const get = await fetch(url, { method: "GET", headers: { Range: "bytes=0-0" } });
-    return get.ok || get.status === 206;
-  } catch {
-    return false;
-  }
-}
-
 function createAircraftCanvas(headingDeg: number, selected: boolean): string {
   const size = 64;
   const canvas = document.createElement("canvas");
@@ -413,6 +402,30 @@ function createAircraftCanvas(headingDeg: number, selected: boolean): string {
   ctx.stroke();
 
   return canvas.toDataURL();
+}
+
+async function prepareAircraftModel(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, { cache: "force-cache" });
+    if (!response.ok) return null;
+    const bytes = await response.arrayBuffer();
+    const isGlb =
+      bytes.byteLength >= 4 &&
+      new DataView(bytes).getUint32(0, true) === 0x46546c67;
+    if (!isGlb) {
+      const json = JSON.parse(new TextDecoder().decode(bytes)) as {
+        asset?: { version?: string };
+      };
+      if (!json.asset?.version?.startsWith("2")) return null;
+    }
+    return URL.createObjectURL(
+      new Blob([bytes], {
+        type: isGlb ? "model/gltf-binary" : "model/gltf+json",
+      }),
+    );
+  } catch {
+    return null;
+  }
 }
 
 let cesiumPromise: Promise<CesiumModule> | null = null;
