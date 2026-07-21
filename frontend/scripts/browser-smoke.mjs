@@ -21,7 +21,11 @@ const errors = [];
 const failed = [];
 const badResponses = [];
 page.on("console", (message) => {
-  if (message.type() === "error") errors.push(message.text());
+  if (message.type() === "error") {
+    errors.push(
+      `${message.text()} ${message.location().url}:${message.location().lineNumber}`,
+    );
+  }
 });
 page.on("pageerror", (error) => errors.push(error.message));
 page.on("requestfailed", (request) => {
