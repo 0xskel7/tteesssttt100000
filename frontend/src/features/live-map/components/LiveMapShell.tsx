@@ -8,7 +8,7 @@ import type { LiveFlight } from "@/features/flight-tracking/types";
 import { FeatureErrorBoundary } from "@/shared/ui-error-boundary";
 import { colors, typography } from "@/shared/design-tokens";
 import { loadMapView, saveMapView } from "../map-view-persistence";
-import { CesiumFlightGlobe } from "./CesiumFlightGlobe";
+import { FlightMap } from "./FlightMap";
 import { advanceFlights } from "../simulate-flights";
 
 interface Props {
@@ -65,7 +65,7 @@ export function LiveMapShell({
   return (
     <main className="map-shell">
       <FeatureErrorBoundary title="Map failed">
-        <CesiumFlightGlobe
+        <FlightMap
           flights={flights}
           selectedFlightId={selectedId}
           onSelectFlight={onSelectFlight}

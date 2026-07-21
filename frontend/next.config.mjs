@@ -1,7 +1,3 @@
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoName = "tteesssttt100000";
 const isGhPages = process.env.GITHUB_PAGES === "1";
 const basePath = isGhPages ? `/${repoName}` : "";
@@ -16,7 +12,6 @@ const nextConfig = {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
   reactStrictMode: true,
-  transpilePackages: ["cesium"],
   async headers() {
 
     const csp = [
@@ -24,7 +19,7 @@ const nextConfig = {
       "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
+      "img-src 'self' data: blob: https://*.basemaps.cartocdn.com",
       "worker-src 'self' blob:",
       "connect-src 'self' https: http: ws: wss:",
       "object-src 'none'",
@@ -44,25 +39,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  webpack: (config, { isServer, webpack }) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      cesium: path.resolve(__dirname, "node_modules/cesium"),
-    };
-
-    if (!isServer) {
-      config.plugins.push(
-        new webpack.DefinePlugin({
-          CESIUM_BASE_URL: JSON.stringify(`${basePath}/cesium`),
-        }),
-      );
-    }
-
-    config.module = config.module ?? {};
-    config.module.unknownContextCritical = false;
-
-    return config;
   },
 };
 

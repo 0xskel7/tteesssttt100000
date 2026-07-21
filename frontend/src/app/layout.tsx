@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans_Arabic, Manrope, Syne } from "next/font/google";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 const syne = Syne({

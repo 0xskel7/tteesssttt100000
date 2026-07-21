@@ -26,7 +26,7 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
           className="flight-panel"
           style={panelStyle}
         >
-          <div style={headerStyle}>
+          <div className="flight-panel-header" style={headerStyle}>
             <div>
               <p style={eyebrowStyle}>{safeDisplayText(flight.aircraft.airlineName, 60)}</p>
               <h2 style={titleStyle}>{safeDisplayText(flight.flightNumber, 16)}</h2>
@@ -60,7 +60,7 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
             <Stat label="ETA" value={formatEtaRemaining(flight.etaIso)} accent={colors.flight.selected} />
           </dl>
 
-          <div style={paxBox}>
+          <div className="flight-panel-passengers" style={paxBox}>
             <p style={eyebrowStyle}>Passenger estimate</p>
             <p style={{ fontSize: typography.size.xl, fontWeight: 700, margin: `${space.xs} 0` }}>
               ~{flight.passengerEstimate.estimatedPassengers.toLocaleString()}
@@ -74,7 +74,7 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
             </p>
           </div>
 
-          <div style={metaRow}>
+          <div className="flight-panel-meta" style={metaRow}>
             <span>{safeDisplayText(flight.aircraft.typeName, 60)}</span>
             <span style={{ fontFamily: typography.fontMono }}>
               {safeDisplayText(flight.aircraft.registration, 16)}

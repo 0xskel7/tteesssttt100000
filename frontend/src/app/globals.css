@@ -52,29 +52,6 @@ button {
   font-family: inherit;
 }
 
-.cesium-viewer-toolbar,
-.cesium-viewer-animationContainer,
-.cesium-viewer-timelineContainer {
-  display: none !important;
-}
-
-.cesium-viewer,
-.cesium-viewer-cesiumWidgetContainer,
-.cesium-widget,
-.cesium-widget canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.cesium-viewer-bottom {
-  left: auto !important;
-  right: 8px !important;
-  bottom: 4px !important;
-  opacity: 0.62;
-  transform: scale(0.78);
-  transform-origin: right bottom;
-}
-
 .map-shell {
   position: relative;
   width: 100%;
@@ -94,10 +71,174 @@ button {
   background: linear-gradient(180deg, rgba(4, 11, 18, 0.2) 0, transparent 18%);
 }
 
-.globe-stage {
+.map-stage {
   position: absolute;
   inset: 0;
   z-index: 0;
+}
+
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+  background: #dfe8ec;
+}
+
+.leaflet-container {
+  font-family: var(--hz-font-body);
+}
+
+.leaflet-control-attribution {
+  padding: 2px 6px !important;
+  border-radius: 8px 0 0 !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: #60727d !important;
+  font-size: 9px !important;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-control-attribution a {
+  color: #237d84 !important;
+}
+
+.map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  background: #eaf0f2;
+  color: #38515f;
+  font-weight: 700;
+}
+
+.aircraft-marker {
+  border: 0;
+  background: transparent;
+  transition: transform 1.1s linear;
+}
+
+.aircraft-marker-inner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 58px;
+}
+
+.aircraft-marker svg {
+  position: relative;
+  z-index: 2;
+  width: 39px;
+  height: 39px;
+  transform: rotate(var(--bearing));
+  transform-origin: center;
+  fill: #0f9f9b;
+  stroke: #fff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 3px 4px rgba(12, 42, 54, 0.34));
+  transition: transform 300ms ease, fill 180ms ease;
+}
+
+.aircraft-marker b {
+  position: absolute;
+  top: 44px;
+  z-index: 3;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #183544;
+  font: 700 9px var(--hz-font-mono);
+  box-shadow: 0 2px 8px rgba(18, 50, 64, 0.18);
+  white-space: nowrap;
+}
+
+.aircraft-pulse {
+  position: absolute;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(15, 159, 155, 0.18);
+  animation: aircraft-pulse 1.8s ease-out infinite;
+}
+
+.aircraft-marker.is-active svg {
+  width: 46px;
+  height: 46px;
+  fill: #ffad32;
+}
+
+.aircraft-marker.is-active b {
+  color: #8a4e00;
+}
+
+.aircraft-marker.is-active .aircraft-pulse {
+  background: rgba(255, 173, 50, 0.22);
+}
+
+.flight-route {
+  animation: route-flow 1.2s linear infinite;
+}
+
+.city-marker {
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.city-marker > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.city-dot {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #12b9aa;
+  box-shadow: 0 1px 6px rgba(0, 67, 75, 0.4);
+}
+
+.city-copy {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  color: #23414e;
+  text-shadow:
+    0 1px 0 #fff,
+    1px 0 0 #fff,
+    -1px 0 0 #fff,
+    0 -1px 0 #fff;
+  white-space: nowrap;
+}
+
+.city-copy b {
+  font-size: 12px;
+}
+
+.city-copy small {
+  color: #50717d;
+  font: 700 9px var(--hz-font-mono);
+}
+
+@keyframes aircraft-pulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.65);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
+@keyframes route-flow {
+  to {
+    stroke-dashoffset: -20;
+  }
 }
 
 .map-header {
@@ -235,6 +376,69 @@ button {
   right: 20px;
   bottom: 20px;
   width: min(380px, calc(100vw - 2rem));
+  border: 0 !important;
+  border-radius: 30px 30px 8px 30px !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(62, 224, 197, 0.16), transparent 28%),
+    linear-gradient(155deg, rgba(10, 26, 40, 0.97), rgba(7, 18, 29, 0.94)) !important;
+  box-shadow:
+    0 28px 72px rgba(6, 20, 31, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.flight-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 34px;
+  width: 110px;
+  height: 4px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(90deg, #3ee0c5, #71e8ff);
+  transform: skewX(-35deg);
+}
+
+.flight-panel-route {
+  padding: 16px 0 !important;
+  border-top: 1px solid rgba(168, 199, 215, 0.12);
+  border-bottom: 1px solid rgba(168, 199, 215, 0.12);
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.flight-panel-stats {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 0 !important;
+  border-bottom: 1px solid rgba(168, 199, 215, 0.12);
+}
+
+.flight-panel-stats > div {
+  min-width: 0;
+  padding: 12px 8px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(168, 199, 215, 0.12) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.flight-panel-stats > div:first-child {
+  padding-left: 0 !important;
+}
+
+.flight-panel-stats > div:last-child {
+  border-right: 0 !important;
+}
+
+.flight-panel-passengers {
+  padding: 4px 0 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(168, 199, 215, 0.12) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.flight-panel-meta {
+  padding-top: 4px;
 }
 
 .render-badge {
@@ -375,16 +579,21 @@ button {
     border-radius: 22px !important;
   }
 
-  .flight-panel-route {
-    padding: 11px !important;
-  }
-
   .flight-panel-stats {
-    gap: 7px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .flight-panel-stats > div {
-    padding: 10px !important;
+    padding: 10px 8px !important;
+    border-bottom: 1px solid rgba(168, 199, 215, 0.12) !important;
+  }
+
+  .flight-panel-stats > div:nth-child(2n) {
+    border-right: 0 !important;
+  }
+
+  .flight-panel-stats > div:nth-last-child(-n + 2) {
+    border-bottom: 0 !important;
   }
 
   .render-badge {
@@ -403,9 +612,11 @@ button {
     height: 36px;
   }
 
-  .cesium-viewer-bottom {
-    bottom: 48px !important;
-    max-width: 70vw;
+  .leaflet-control-attribution {
+    bottom: 0;
+    max-width: 60vw;
+    overflow: hidden;
+    white-space: nowrap;
   }
 }
 
