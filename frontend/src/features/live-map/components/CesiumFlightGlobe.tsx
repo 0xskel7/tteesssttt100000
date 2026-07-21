@@ -91,7 +91,7 @@ export function CesiumFlightGlobe({
 
         const modelUrl =
           process.env.NEXT_PUBLIC_AIRCRAFT_MODEL_URL ??
-          `${basePath}/models/aircraft.glb`;
+          `${basePath}/models/aircraft.gltf`;
 
         const modelOk = await probeModel(modelUrl);
         if (!modelOk) {

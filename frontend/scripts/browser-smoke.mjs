@@ -19,6 +19,7 @@ const context = await browser.newContext({
 const page = await context.newPage();
 const errors = [];
 const failed = [];
+const badResponses = [];
 page.on("console", (message) => {
   if (message.type() === "error") errors.push(message.text());
 });
@@ -26,11 +27,20 @@ page.on("pageerror", (error) => errors.push(error.message));
 page.on("requestfailed", (request) => {
   failed.push(`${request.failure()?.errorText ?? "failed"} ${request.url()}`);
 });
+page.on("response", (response) => {
+  if (response.status() >= 400) {
+    badResponses.push(`${response.status()} ${response.url()}`);
+  }
+});
 const response = await page.goto(url, {
   waitUntil: "networkidle",
   timeout: 60_000,
 });
 await page.waitForTimeout(8_000);
+if (process.argv.includes("--select")) {
+  await page.locator(".flight-chip").first().click();
+  await page.waitForTimeout(2_500);
+}
 await page.screenshot({ path: output, fullPage: true });
 console.log(
   JSON.stringify(
@@ -41,6 +51,7 @@ console.log(
       canvas: await page.locator("canvas").count(),
       errors,
       failed,
+      badResponses,
       viewport: page.viewportSize(),
       output,
     },
