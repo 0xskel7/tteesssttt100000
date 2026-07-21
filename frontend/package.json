@@ -1,0 +1,15 @@
+{
+  "name": "@flight-platform/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend feature modules — includes realtime map socket client",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

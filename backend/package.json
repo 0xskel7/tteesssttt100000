@@ -1,0 +1,20 @@
+{
+  "name": "@flight-platform/backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API modules — live-tracking uses Circuit Breaker toward realtime-engine",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev:live-tracking-demo": "tsx src/modules/live-tracking/demo.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

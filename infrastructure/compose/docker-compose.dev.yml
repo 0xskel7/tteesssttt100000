@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+
+  realtime-engine:
+    build:
+      context: ../realtime-engine
+      dockerfile: ../infrastructure/docker/realtime-engine.Dockerfile
+    env_file:
+      - ../realtime-engine/.env.example
+    environment:
+      REDIS_URL: redis://redis:6379
+      HOST: 0.0.0.0
+      PORT: 4100
+    ports:
+      - "4100:4100"
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
