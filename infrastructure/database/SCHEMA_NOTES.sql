@@ -1,0 +1,29 @@
+-- =============================================================================
+-- ER overview (logical relationships)
+-- =============================================================================
+--
+--  airlines 1───* aircraft
+--  airlines 1───* flights
+--  airports 1───* flights          (as origin)
+--  airports 1───* flights          (as destination)
+--  aircraft 1───* flights          (nullable until assigned)
+--  flights  1───* flight_positions (logical; no DB FK for write speed)
+--  flights  1───* passenger_estimates
+--  aircraft 1───* passenger_estimates
+--  users    1───* user_flight_subscriptions
+--  flights  1───* user_flight_subscriptions
+--
+-- Why TimescaleDB for flight_positions?
+-- -------------------------------------
+-- Positions arrive every few seconds per active flight (high-frequency inserts).
+-- Classic PostgreSQL B-Tree tables degrade under this write+range-query pattern:
+--   • huge indexes, vacuum pressure, slow "last N minutes" scans.
+-- TimescaleDB hypertables partition by time (chunks), so:
+--   1) Inserts hit only the current open chunk → sustained high write throughput
+--   2) Time-range queries prune old chunks automatically
+--   3) Native compression shrinks historical telemetry dramatically
+--   4) Retention policies drop old chunks without expensive DELETE scans
+--   5) Continuous aggregates serve map/history rollups without reading raw rows
+-- Auth, subscriptions, and flight metadata stay on regular tables so a telemetry
+-- storm (or provider outage) does not block login or the rest of the platform.
+-- =============================================================================
