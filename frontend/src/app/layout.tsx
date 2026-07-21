@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   title: "Horizon — Live Flight Tracking",
   description:
     "Professional real-time flight tracking on a true 3D globe. Altitude, bearing, and path.",
+  icons: {
+    icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/icon.svg`,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
