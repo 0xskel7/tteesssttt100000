@@ -68,7 +68,7 @@ button {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(4, 11, 18, 0.2) 0, transparent 18%);
+  background: linear-gradient(180deg, rgba(53, 64, 70, 0.08) 0, transparent 14%);
 }
 
 .map-stage {
@@ -114,7 +114,6 @@ button {
 .aircraft-marker {
   border: 0;
   background: transparent;
-  transition: transform 1.1s linear;
 }
 
 .aircraft-marker-inner {
@@ -132,7 +131,7 @@ button {
   height: 39px;
   transform: rotate(var(--bearing));
   transform-origin: center;
-  fill: #0f9f9b;
+  fill: #1a73e8;
   stroke: #fff;
   stroke-width: 1.5;
   filter: drop-shadow(0 3px 4px rgba(12, 42, 54, 0.34));
@@ -152,28 +151,14 @@ button {
   white-space: nowrap;
 }
 
-.aircraft-pulse {
-  position: absolute;
-  z-index: 1;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: rgba(15, 159, 155, 0.18);
-  animation: aircraft-pulse 1.8s ease-out infinite;
-}
-
 .aircraft-marker.is-active svg {
   width: 46px;
   height: 46px;
-  fill: #ffad32;
+  fill: #e8710a;
 }
 
 .aircraft-marker.is-active b {
   color: #8a4e00;
-}
-
-.aircraft-marker.is-active .aircraft-pulse {
-  background: rgba(255, 173, 50, 0.22);
 }
 
 .flight-route {
@@ -198,7 +183,7 @@ button {
   flex: 0 0 auto;
   border: 3px solid #fff;
   border-radius: 50%;
-  background: #12b9aa;
+  background: #1a73e8;
   box-shadow: 0 1px 6px rgba(0, 67, 75, 0.4);
 }
 
@@ -224,17 +209,6 @@ button {
   font: 700 9px var(--hz-font-mono);
 }
 
-@keyframes aircraft-pulse {
-  0% {
-    opacity: 0.8;
-    transform: scale(0.65);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.65);
-  }
-}
-
 @keyframes route-flow {
   to {
     stroke-dashoffset: -20;
@@ -243,64 +217,50 @@ button {
 
 .map-header {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 16px;
+  left: 16px;
   z-index: 30;
   display: flex;
   align-items: center;
-  gap: 14px;
-  width: min(620px, calc(100vw - 450px));
-}
-
-.brand-lockup {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 14px;
-  background: rgba(7, 19, 31, 0.82);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(16px);
-}
-
-.brand-lockup p {
-  font-size: 1.3rem;
-  letter-spacing: -0.04em;
-}
-
-.brand-lockup span {
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgba(62, 224, 197, 0.15);
-  color: var(--hz-brand-primary);
-  font: 600 0.58rem var(--hz-font-mono);
-  letter-spacing: 0.12em;
+  width: min(440px, calc(100vw - 32px));
 }
 
 .map-search {
   display: flex;
   align-items: center;
-  flex: 1 1 360px;
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
   min-width: 220px;
-  height: 48px;
-  padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(16px);
+  height: 56px;
+  padding: 0 14px;
+  border: 1px solid #e2e6e9;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(32, 46, 56, 0.18);
 }
 
-.map-search svg {
+.map-search-icon {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
   fill: none;
-  stroke: #466070;
+  stroke: #5f6368;
   stroke-width: 2;
   stroke-linecap: round;
+}
+
+.map-search-plane {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 17px;
+  transform: rotate(-18deg);
 }
 
 .map-search input {
@@ -311,63 +271,84 @@ button {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #172a37;
-  font: 600 0.88rem var(--hz-font-body);
+  color: #202124;
+  font: 500 0.9rem var(--hz-font-body);
 }
 
 .map-search input::placeholder {
-  color: #6b8290;
-  font-weight: 500;
+  color: #80868b;
+  font-weight: 400;
 }
 
-.flight-chips {
-  position: absolute;
-  top: 82px;
-  left: 20px;
-  z-index: 25;
-  display: flex;
-  gap: 8px;
-  max-width: calc(100vw - 450px);
-  overflow-x: auto;
-  padding: 2px 2px 8px;
-  scrollbar-width: none;
-}
-
-.flight-chips::-webkit-scrollbar {
-  display: none;
-}
-
-.flight-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.flight-count {
   flex: 0 0 auto;
-  height: 38px;
-  padding: 0 13px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 5px 9px;
   border-radius: 999px;
-  background: rgba(8, 18, 32, 0.84);
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(14px);
+  background: #f1f3f4;
+  color: #5f6368;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.search-results {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  overflow: hidden;
+  padding: 8px 0;
+  border: 1px solid #e2e6e9;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(32, 46, 56, 0.2);
+}
+
+.search-results button {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: #202124;
+  text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease;
 }
 
-.flight-chip:hover,
-.flight-chip.is-active {
-  border-color: rgba(62, 224, 197, 0.8);
-  background: rgba(12, 39, 48, 0.94);
+.search-results button:hover {
+  background: #f6f8f9;
 }
 
-.flight-chip-number {
-  color: var(--hz-brand-primary);
-  font: 700 0.78rem var(--hz-font-mono);
+.search-results button > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
 }
 
-.flight-chip-route {
-  color: #d4e1e8;
-  font-size: 0.72rem;
+.search-results b {
+  font-size: 0.84rem;
+}
+
+.search-results small,
+.search-results em {
+  color: #70757a;
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.search-results p {
+  margin: 0;
+  padding: 14px;
+  color: #70757a;
+  text-align: center;
+}
+
+.search-result-plane {
+  color: #1a73e8;
+  font-size: 18px;
+  transform: rotate(-18deg);
 }
 
 .flight-panel {
@@ -376,32 +357,28 @@ button {
   right: 20px;
   bottom: 20px;
   width: min(380px, calc(100vw - 2rem));
-  border: 0 !important;
-  border-radius: 30px 30px 8px 30px !important;
-  background:
-    radial-gradient(circle at 100% 0, rgba(62, 224, 197, 0.16), transparent 28%),
-    linear-gradient(155deg, rgba(10, 26, 40, 0.97), rgba(7, 18, 29, 0.94)) !important;
-  box-shadow:
-    0 28px 72px rgba(6, 20, 31, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid #e0e4e7 !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  color: #202124 !important;
+  box-shadow: 0 14px 42px rgba(44, 58, 66, 0.18) !important;
 }
 
 .flight-panel::before {
   content: "";
   position: absolute;
   top: 0;
-  left: 34px;
-  width: 110px;
-  height: 4px;
-  border-radius: 0 0 6px 6px;
-  background: linear-gradient(90deg, #3ee0c5, #71e8ff);
-  transform: skewX(-35deg);
+  left: 28px;
+  width: 72px;
+  height: 3px;
+  border-radius: 0 0 5px 5px;
+  background: #1a73e8;
 }
 
 .flight-panel-route {
   padding: 16px 0 !important;
-  border-top: 1px solid rgba(168, 199, 215, 0.12);
-  border-bottom: 1px solid rgba(168, 199, 215, 0.12);
+  border-top: 1px solid #eceff1;
+  border-bottom: 1px solid #eceff1;
   border-radius: 0 !important;
   background: transparent !important;
 }
@@ -409,14 +386,14 @@ button {
 .flight-panel-stats {
   grid-template-columns: repeat(4, 1fr) !important;
   gap: 0 !important;
-  border-bottom: 1px solid rgba(168, 199, 215, 0.12);
+  border-bottom: 1px solid #eceff1;
 }
 
 .flight-panel-stats > div {
   min-width: 0;
   padding: 12px 8px !important;
   border: 0 !important;
-  border-right: 1px solid rgba(168, 199, 215, 0.12) !important;
+  border-right: 1px solid #eceff1 !important;
   border-radius: 0 !important;
   background: transparent !important;
 }
@@ -432,39 +409,13 @@ button {
 .flight-panel-passengers {
   padding: 4px 0 14px !important;
   border: 0 !important;
-  border-bottom: 1px solid rgba(168, 199, 215, 0.12) !important;
+  border-bottom: 1px solid #eceff1 !important;
   border-radius: 0 !important;
   background: transparent !important;
 }
 
 .flight-panel-meta {
   padding-top: 4px;
-}
-
-.render-badge {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  background: rgba(8, 18, 32, 0.82);
-  color: #9bb4c7;
-  font-size: 0.66rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(12px);
-}
-
-.render-badge span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #3ee0c5;
-  box-shadow: 0 0 9px #3ee0c5;
 }
 
 .map-controls {
@@ -496,7 +447,7 @@ button {
 
 .map-controls button:last-child {
   border-bottom: 0;
-  color: #0d9c8d;
+  color: #1a73e8;
   font-size: 1rem;
 }
 
@@ -506,11 +457,7 @@ button {
 
 @media (max-width: 960px) {
   .map-header {
-    width: calc(100vw - 40px);
-  }
-
-  .flight-chips {
-    max-width: calc(100vw - 40px);
+    width: min(440px, calc(100vw - 32px));
   }
 
   .map-controls {
@@ -527,44 +474,21 @@ button {
     top: max(10px, env(safe-area-inset-top));
     left: 10px;
     width: calc(100vw - 20px);
-    gap: 8px;
-  }
-
-  .brand-lockup {
-    height: 44px;
-    padding: 6px 10px;
-    border-radius: 13px;
-  }
-
-  .brand-lockup p {
-    font-size: 1.05rem;
-  }
-
-  .brand-lockup span {
-    display: none;
   }
 
   .map-search {
-    height: 44px;
+    height: 52px;
     min-width: 0;
     padding: 0 12px;
-    border-radius: 13px;
+    border-radius: 26px;
   }
 
   .map-search input {
     font-size: 0.78rem;
   }
 
-  .flight-chips {
-    top: calc(max(10px, env(safe-area-inset-top)) + 52px);
-    left: 8px;
-    max-width: calc(100vw - 8px);
-    padding-right: 12px;
-  }
-
-  .flight-chip {
-    height: 34px;
-    padding: 0 11px;
+  .flight-count {
+    display: none;
   }
 
   .flight-panel {
@@ -585,7 +509,7 @@ button {
 
   .flight-panel-stats > div {
     padding: 10px 8px !important;
-    border-bottom: 1px solid rgba(168, 199, 215, 0.12) !important;
+    border-bottom: 1px solid #eceff1 !important;
   }
 
   .flight-panel-stats > div:nth-child(2n) {
@@ -594,12 +518,6 @@ button {
 
   .flight-panel-stats > div:nth-last-child(-n + 2) {
     border-bottom: 0 !important;
-  }
-
-  .render-badge {
-    left: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
-    padding: 6px 9px;
   }
 
   .map-controls {

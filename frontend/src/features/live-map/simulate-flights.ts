@@ -35,7 +35,9 @@ function advanceFlight(flight: LiveFlight): LiveFlight {
     };
   }
 
-  const step = Math.min(0.018, Math.max(0.004, 24 / remainingKm));
+  const kmPerTick =
+    ((flight.groundSpeedKts * 1.852) / 3_600) * 1.2 * 8;
+  const step = Math.min(0.006, Math.max(0.00025, kmPerTick / remainingKm));
   const latitude =
     flight.latitude +
     (flight.destination.latitude - flight.latitude) * step;
@@ -50,8 +52,8 @@ function advanceFlight(flight: LiveFlight): LiveFlight {
   );
   const altitudeFt =
     remainingKm < 450
-      ? Math.max(4_000, flight.altitudeFt - 650)
-      : Math.min(41_000, flight.altitudeFt + (flight.altitudeFt < 34_000 ? 500 : 0));
+      ? Math.max(4_000, flight.altitudeFt - 120)
+      : Math.min(41_000, flight.altitudeFt + (flight.altitudeFt < 34_000 ? 100 : 0));
   const hoursRemaining =
     remainingKm / Math.max(200, flight.groundSpeedKts * 1.852);
   const point = { lat: latitude, lon: longitude, altFt: altitudeFt };
@@ -63,7 +65,7 @@ function advanceFlight(flight: LiveFlight): LiveFlight {
     headingDeg,
     altitudeFt,
     etaIso: new Date(Date.now() + hoursRemaining * 3_600_000).toISOString(),
-    path: [...flight.path, point].slice(-120),
+    path: [...flight.path, point].slice(-240),
   };
 }
 

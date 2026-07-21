@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { colors, motion as motionTokens, radii, space, typography } from "@/shared/design-tokens";
+import { motion as motionTokens, radii, space, typography } from "@/shared/design-tokens";
 import { safeDisplayText } from "@/shared/lib/safe-text";
 import type { LiveFlight } from "../types";
 import { formatAltitude, formatEtaRemaining, formatSpeed, routeLabel } from "../lib/format";
@@ -54,23 +54,23 @@ export function FlightDetailPanel({ flight, onClose }: Props) {
           </motion.div>
 
           <dl className="flight-panel-stats" style={statsGrid}>
-            <Stat label="Altitude" value={formatAltitude(flight.altitudeFt)} accent={colors.flight.altitude} />
+            <Stat label="Altitude" value={formatAltitude(flight.altitudeFt)} accent="#1a73e8" />
             <Stat label="Speed" value={formatSpeed(flight.groundSpeedKts)} />
             <Stat label="Heading" value={`${Math.round(flight.headingDeg)}°`} />
-            <Stat label="ETA" value={formatEtaRemaining(flight.etaIso)} accent={colors.flight.selected} />
+            <Stat label="ETA" value={formatEtaRemaining(flight.etaIso)} accent="#1a73e8" />
           </dl>
 
           <div className="flight-panel-passengers" style={paxBox}>
-            <p style={eyebrowStyle}>Passenger estimate</p>
+            <p style={eyebrowStyle}>Estimated occupancy</p>
             <p style={{ fontSize: typography.size.xl, fontWeight: 700, margin: `${space.xs} 0` }}>
               ~{flight.passengerEstimate.estimatedPassengers.toLocaleString()}
-              <span style={{ color: colors.text.muted, fontSize: typography.size.sm, fontWeight: 500 }}>
+              <span style={{ color: "#80868b", fontSize: typography.size.sm, fontWeight: 500 }}>
                 {" "}
                 / {flight.passengerEstimate.maxCapacity}
               </span>
             </p>
-            <p style={{ color: colors.text.muted, fontSize: typography.size.xs, lineHeight: 1.45 }}>
-              {flight.passengerEstimate.note}
+            <p style={{ color: "#80868b", fontSize: typography.size.xs, lineHeight: 1.45 }}>
+              Approximate
             </p>
           </div>
 
@@ -101,7 +101,7 @@ function AirportBlock({
       <p style={{ fontFamily: typography.fontDisplay, fontSize: typography.size.xl, fontWeight: 700 }}>
         {safeDisplayText(code, 8)}
       </p>
-      <p style={{ color: colors.text.secondary, fontSize: typography.size.sm }}>
+      <p style={{ color: "#70757a", fontSize: typography.size.sm }}>
         {safeDisplayText(city, 40)}
       </p>
     </div>
@@ -125,7 +125,7 @@ function Stat({
           margin: 0,
           fontFamily: typography.fontMono,
           fontWeight: 600,
-          color: accent ?? colors.text.primary,
+          color: accent ?? "#202124",
         }}
       >
         {value}
@@ -141,12 +141,11 @@ const panelStyle: CSSProperties = {
   gap: space.md,
   padding: space.lg,
   borderRadius: radii.lg,
-  background: colors.surface.panel,
-  border: `1px solid ${colors.surface.line}`,
-  backdropFilter: "blur(18px)",
-  color: colors.text.primary,
+  background: "#ffffff",
+  border: "1px solid #e2e7eb",
+  color: "#202124",
   fontFamily: typography.fontBody,
-  boxShadow: "0 24px 64px rgba(0,0,0,0.45)",
+  boxShadow: "0 18px 50px rgba(40, 55, 67, 0.18)",
   overflow: "auto",
 };
 
@@ -164,7 +163,7 @@ const titleStyle: CSSProperties = {
 };
 
 const routeStyle: CSSProperties = {
-  color: colors.brand.primary,
+  color: "#1a73e8",
   fontWeight: 600,
   marginTop: space.xs,
 };
@@ -174,16 +173,16 @@ const eyebrowStyle: CSSProperties = {
   fontSize: typography.size.xs,
   letterSpacing: "0.08em",
   textTransform: "uppercase",
-  color: colors.text.muted,
+  color: "#70757a",
 };
 
 const closeStyle: CSSProperties = {
   width: 36,
   height: 36,
   borderRadius: radii.pill,
-  border: `1px solid ${colors.surface.line}`,
-  background: colors.surface.elev,
-  color: colors.text.primary,
+  border: "1px solid #dfe4e8",
+  background: "#f5f7f8",
+  color: "#3c4043",
   cursor: "pointer",
 };
 
@@ -194,13 +193,13 @@ const routeBlockStyle: CSSProperties = {
   gap: space.sm,
   padding: space.md,
   borderRadius: radii.md,
-  background: colors.surface.elev,
+  background: "transparent",
 };
 
 const routeDash: CSSProperties = {
   height: 2,
   width: 36,
-  background: `linear-gradient(90deg, ${colors.flight.pathDim}, ${colors.flight.path})`,
+  background: "linear-gradient(90deg, #aac7f8, #1a73e8)",
   borderRadius: radii.pill,
 };
 
@@ -214,15 +213,15 @@ const statsGrid: CSSProperties = {
 const statCell: CSSProperties = {
   padding: space.md,
   borderRadius: radii.md,
-  background: colors.surface.elev,
-  border: `1px solid ${colors.surface.line}`,
+  background: "transparent",
+  border: "0",
 };
 
 const paxBox: CSSProperties = {
   padding: space.md,
   borderRadius: radii.md,
-  border: `1px dashed ${colors.surface.line}`,
-  background: "rgba(62, 224, 197, 0.06)",
+  border: "0",
+  background: "transparent",
 };
 
 const metaRow: CSSProperties = {
@@ -230,6 +229,6 @@ const metaRow: CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
   gap: space.sm,
-  color: colors.text.secondary,
+  color: "#70757a",
   fontSize: typography.size.sm,
 };

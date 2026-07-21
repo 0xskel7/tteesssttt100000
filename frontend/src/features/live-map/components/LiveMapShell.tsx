@@ -6,7 +6,6 @@ import { FlightDetailPanel } from "@/features/flight-tracking/components/FlightD
 import { DEMO_FLIGHTS } from "@/features/flight-tracking/demo-flights";
 import type { LiveFlight } from "@/features/flight-tracking/types";
 import { FeatureErrorBoundary } from "@/shared/ui-error-boundary";
-import { colors, typography } from "@/shared/design-tokens";
 import { loadMapView, saveMapView } from "../map-view-persistence";
 import { FlightMap } from "./FlightMap";
 import { advanceFlights } from "../simulate-flights";
@@ -72,24 +71,16 @@ export function LiveMapShell({
         />
       </FeatureErrorBoundary>
 
-      <BrandChrome query={query} onQueryChange={setQuery} />
-
-      <nav className="flight-chips" aria-label="Available flights">
-        {visibleFlights.map((flight) => (
-          <motion.button
-            key={flight.id}
-            type="button"
-            whileTap={{ scale: 0.97 }}
-            className={`flight-chip${selectedId === flight.id ? " is-active" : ""}`}
-            onClick={() => onSelectFlight(flight.id)}
-          >
-            <span className="flight-chip-number">{flight.flightNumber}</span>
-            <span className="flight-chip-route">
-              {flight.origin.code} → {flight.destination.code}
-            </span>
-          </motion.button>
-        ))}
-      </nav>
+      <SearchBar
+        query={query}
+        onQueryChange={setQuery}
+        results={visibleFlights}
+        total={flights.length}
+        onSelect={(id) => {
+          onSelectFlight(id);
+          setQuery("");
+        }}
+      />
 
       <div className="map-controls" aria-label="Map controls">
         <button
@@ -122,12 +113,18 @@ export function LiveMapShell({
   );
 }
 
-function BrandChrome({
+function SearchBar({
   query,
   onQueryChange,
+  results,
+  total,
+  onSelect,
 }: {
   query: string;
   onQueryChange: (value: string) => void;
+  results: LiveFlight[];
+  total: number;
+  onSelect: (id: string) => void;
 }) {
   return (
     <motion.header
@@ -136,30 +133,40 @@ function BrandChrome({
       transition={{ duration: 0.45 }}
       className="map-header"
     >
-      <div className="brand-lockup">
-        <p
-          style={{
-            margin: 0,
-            fontFamily: typography.fontDisplay,
-            fontWeight: 700,
-            color: colors.text.primary,
-          }}
-        >
-          Horizon
-        </p>
-        <span>LIVE</span>
-      </div>
       <label className="map-search">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
+        <span className="map-search-plane">✈</span>
+        <svg className="map-search-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
         </svg>
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search flight, airport or airline"
+          placeholder="Search flights and airports"
           aria-label="Search flights"
         />
+        <span className="flight-count">{total} flights</span>
       </label>
+      {query.trim() ? (
+        <div className="search-results">
+          {results.slice(0, 7).map((flight) => (
+            <button
+              type="button"
+              key={flight.id}
+              onClick={() => onSelect(flight.id)}
+            >
+              <span className="search-result-plane">✈</span>
+              <span>
+                <b>{flight.flightNumber}</b>
+                <small>
+                  {flight.origin.city} → {flight.destination.city}
+                </small>
+              </span>
+              <em>{flight.aircraft.airlineName}</em>
+            </button>
+          ))}
+          {results.length === 0 ? <p>No matching flights</p> : null}
+        </div>
+      ) : null}
     </motion.header>
   );
 }

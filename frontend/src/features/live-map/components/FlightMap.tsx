@@ -23,6 +23,7 @@ export function FlightMap({
   const leafletRef = useRef<LeafletModule | null>(null);
   const markersRef = useRef(new Map<string, FlightMarker>());
   const pathsRef = useRef(new Map<string, FlightPath>());
+  const framesRef = useRef(new Map<string, number>());
   const flightsRef = useRef(flights);
   const selectedRef = useRef(selectedFlightId);
   const onSelectRef = useRef(onSelectFlight);
@@ -126,6 +127,10 @@ export function FlightMap({
       mapRef.current = null;
       markersRef.current.clear();
       pathsRef.current.clear();
+      for (const frame of framesRef.current.values()) {
+        window.cancelAnimationFrame(frame);
+      }
+      framesRef.current.clear();
     };
   }, []);
 
@@ -155,9 +160,15 @@ export function FlightMap({
           .on("click", () => onSelectRef.current(flight.id));
         markersRef.current.set(flight.id, marker);
       } else {
-        marker.setLatLng(position);
+        animateMarker(marker, position, flight.id, framesRef.current);
         marker.setIcon(airplaneIcon(L, flight, selected));
         marker.setZIndexOffset(selected ? 1000 : 100);
+      }
+
+      if (!selected) {
+        pathsRef.current.get(flight.id)?.remove();
+        pathsRef.current.delete(flight.id);
+        continue;
       }
 
       const coordinates = flight.path.map(
@@ -166,7 +177,7 @@ export function FlightMap({
       let path = pathsRef.current.get(flight.id);
       if (!path) {
         path = L.polyline(coordinates, {
-          color: selected ? "#00aeea" : "#39b7d3",
+          color: "#1a73e8",
           weight: selected ? 4 : 2,
           opacity: selected ? 0.9 : 0.42,
           dashArray: selected ? "10 10" : "5 10",
@@ -177,7 +188,7 @@ export function FlightMap({
       } else {
         path.setLatLngs(coordinates);
         path.setStyle({
-          color: selected ? "#00aeea" : "#39b7d3",
+          color: "#1a73e8",
           weight: selected ? 4 : 2,
           opacity: selected ? 0.9 : 0.42,
           dashArray: selected ? "10 10" : "5 10",
@@ -204,10 +215,6 @@ export function FlightMap({
       <div ref={containerRef} className="leaflet-map" />
       {!ready && !error ? <div className="map-loading">Loading map…</div> : null}
       {error ? <div className="map-loading">{error}</div> : null}
-      <div className="render-badge">
-        <span />
-        Live traffic
-      </div>
     </div>
   );
 }
@@ -249,13 +256,42 @@ function airplaneIcon(
     iconSize: [56, 58],
     iconAnchor: [28, 29],
     html: `<div class="aircraft-marker-inner" style="--bearing:${flight.headingDeg}deg">
-      <span class="aircraft-pulse"></span>
       <svg viewBox="0 0 64 64" aria-hidden="true">
         <path d="M32 4c-2.1 0-3.8 2.2-4 5l-1 15-17 9v5l17-4 1 15-6 5v4l10-3 10 3v-4l-6-5 1-15 17 4v-5l-17-9-1-15c-.2-2.8-1.9-5-4-5Z"/>
       </svg>
       <b>${escapeHtml(flight.flightNumber)}</b>
     </div>`,
   });
+}
+
+function animateMarker(
+  marker: FlightMarker,
+  target: [number, number],
+  id: string,
+  frames: Map<string, number>,
+): void {
+  const previous = frames.get(id);
+  if (previous) window.cancelAnimationFrame(previous);
+
+  const from = marker.getLatLng();
+  const startedAt = performance.now();
+  const duration = 1_100;
+
+  const frame = (now: number) => {
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = progress * (2 - progress);
+    marker.setLatLng([
+      from.lat + (target[0] - from.lat) * eased,
+      from.lng + (target[1] - from.lng) * eased,
+    ]);
+    if (progress < 1) {
+      frames.set(id, window.requestAnimationFrame(frame));
+    } else {
+      frames.delete(id);
+    }
+  };
+
+  frames.set(id, window.requestAnimationFrame(frame));
 }
 
 function focusFlight(
